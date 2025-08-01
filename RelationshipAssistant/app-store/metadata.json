@@ -1,0 +1,252 @@
+{
+  "app_name": "EcoMind: Personal Relationship Assistant",
+  "short_name": "EcoMind",
+  "version": "1.0.0",
+  "build_number": "1",
+  "bundle_id": "com.ecomind.app",
+  "category": "Lifestyle",
+  "age_rating": "4+",
+  "content_rating": "Everyone",
+  
+  "description": {
+    "short": "Build meaningful relationships with AI-powered insights and privacy-first design.",
+    "full": "EcoMind is your personal relationship assistant that helps you nurture meaningful connections while respecting your privacy. Using advanced AI technology, EcoMind provides personalized suggestions for staying in touch, remembering important details, and strengthening your relationships.\n\n🌟 KEY FEATURES:\n\n• Visual Relationship Mapping: See your connections in an interactive ecomap that shows relationship health and interaction patterns\n\n• AI-Powered Suggestions: Get personalized prompts for reaching out, remembering birthdays, and maintaining connections (with your explicit consent)\n\n• Privacy-First Design: Your data stays yours with GDPR compliance, granular privacy controls, and transparent data usage\n\n• Interaction Tracking: Log meaningful conversations, events, and memories to build a rich relationship history\n\n• Smart Reminders: Never miss important moments with intelligent notifications based on your relationship patterns\n\n• Glassmorphism UI: Beautiful, modern interface with accessibility features and smooth animations\n\n• Offline Support: Core features work offline, syncing when you're back online\n\n🔒 PRIVACY & SECURITY:\n\n• End-to-end encryption for sensitive data\n• Granular consent management\n• GDPR-compliant data export and deletion\n• No third-party data sharing without permission\n• Privacy impact assessments for AI features\n\n🚀 PERFECT FOR:\n\n• Busy professionals managing client relationships\n• Parents keeping track of extended family\n• Students maintaining college and hometown friendships\n• Anyone wanting to be more intentional about relationships\n• People who value privacy but want smart assistance\n\nEcoMind transforms how you think about and maintain your personal relationships. Download now and start building a more connected life, on your terms.",
+    
+    "keywords": [
+      "relationships",
+      "networking",
+      "contacts",
+      "AI assistant",
+      "privacy",
+      "GDPR",
+      "personal CRM",
+      "social connections",
+      "relationship management",
+      "friendship",
+      "family",
+      "professional networking",
+      "glassmorphism",
+      "modern design",
+      "accessibility"
+    ],
+    
+    "app_store_keywords": "relationships,networking,contacts,AI assistant,privacy,personal CRM,social connections,friendship,family,professional networking",
+    
+    "promotional_text": "Your relationships deserve better than forgotten birthdays and lost conversations. EcoMind helps you nurture meaningful connections with AI-powered insights, all while keeping your data completely private and under your control.",
+    
+    "release_notes": "🎉 Welcome to EcoMind v1.0!\n\n✨ What's New:\n• Visual relationship mapping with interactive ecomap\n• AI-powered relationship suggestions (with your consent)\n• Privacy-first design with GDPR compliance\n• Beautiful glassmorphism interface\n• Smart interaction tracking and reminders\n• Comprehensive accessibility support\n• Offline functionality with cloud sync\n\n🔒 Privacy Features:\n• Granular privacy controls\n• Data export and deletion tools\n• Privacy impact assessments\n• Transparent AI processing consent\n\n📱 User Experience:\n• Smooth animations and transitions\n• Intuitive navigation\n• Voice accessibility support\n• Dark mode support\n• Responsive design for all screen sizes\n\nStart building more meaningful relationships today!"
+  },
+  
+  "screenshots": {
+    "iphone_6_5": [
+      {
+        "filename": "01_home_ecomap.png",
+        "title": "Interactive Relationship Ecomap",
+        "description": "Visualize your relationships with an interactive map showing connection strength and recent activity"
+      },
+      {
+        "filename": "02_ai_suggestions.png",
+        "title": "AI-Powered Suggestions",
+        "description": "Get personalized prompts for staying in touch, with full privacy controls and consent management"
+      },
+      {
+        "filename": "03_person_profile.png",
+        "title": "Rich Relationship Profiles",
+        "description": "Track interactions, memories, and important details about the people who matter most"
+      },
+      {
+        "filename": "04_privacy_controls.png",
+        "title": "Privacy-First Design",
+        "description": "Granular privacy controls with GDPR compliance and transparent data usage"
+      },
+      {
+        "filename": "05_glassmorphism_ui.png",
+        "title": "Beautiful Modern Interface",
+        "description": "Stunning glassmorphism design with accessibility features and smooth animations"
+      }
+    ],
+    "ipad_pro_12_9": [
+      {
+        "filename": "ipad_01_home_overview.png",
+        "title": "Relationship Overview",
+        "description": "See all your connections at a glance with the beautiful tablet interface"
+      },
+      {
+        "filename": "ipad_02_detailed_view.png",
+        "title": "Detailed Relationship Management",
+        "description": "Take advantage of the larger screen for comprehensive relationship management"
+      }
+    ]
+  },
+  
+  "supported_devices": {
+    "ios": {
+      "minimum_version": "13.0",
+      "recommended_version": "15.0",
+      "supported_devices": [
+        "iPhone 8 and later",
+        "iPad (6th generation) and later",
+        "iPad Air (2nd generation) and later",
+        "iPad Pro (all generations)",
+        "iPad mini (4th generation) and later",
+        "iPod touch (7th generation)"
+      ]
+    },
+    "android": {
+      "minimum_api": 21,
+      "recommended_api": 30,
+      "minimum_version": "5.0",
+      "recommended_version": "11.0",
+      "supported_architectures": ["arm64-v8a", "armeabi-v7a", "x86_64"]
+    }
+  },
+  
+  "permissions": {
+    "ios": [
+      {
+        "permission": "NSContactsUsageDescription",
+        "description": "EcoMind can import your contacts to help you manage relationships, but only with your explicit permission. This data stays on your device unless you choose to sync it.",
+        "required": false
+      },
+      {
+        "permission": "NSCameraUsageDescription", 
+        "description": "Add photos to your relationship profiles and interaction memories. Photos are stored securely and encrypted.",
+        "required": false
+      },
+      {
+        "permission": "NSPhotoLibraryUsageDescription",
+        "description": "Choose photos from your library to personalize relationship profiles and document memories.",
+        "required": false
+      },
+      {
+        "permission": "NSUserNotificationsUsageDescription",
+        "description": "Receive gentle reminders to stay in touch with important people in your life. All notifications can be customized or disabled.",
+        "required": false
+      },
+      {
+        "permission": "NSLocationWhenInUseUsageDescription",
+        "description": "Optionally tag interactions with locations to build richer memories. Location data is processed locally and not shared.",
+        "required": false
+      }
+    ],
+    "android": [
+      {
+        "permission": "android.permission.READ_CONTACTS",
+        "description": "Import contacts to help manage relationships (optional)",
+        "required": false
+      },
+      {
+        "permission": "android.permission.CAMERA",
+        "description": "Take photos for relationship profiles and memories (optional)",
+        "required": false
+      },
+      {
+        "permission": "android.permission.READ_EXTERNAL_STORAGE",
+        "description": "Access photos for relationship profiles (optional)",
+        "required": false
+      },
+      {
+        "permission": "android.permission.INTERNET",
+        "description": "Sync data and enable AI features (with consent)",
+        "required": true
+      },
+      {
+        "permission": "android.permission.ACCESS_NETWORK_STATE",
+        "description": "Check network connectivity for sync and updates",
+        "required": true
+      },
+      {
+        "permission": "android.permission.RECEIVE_BOOT_COMPLETED",
+        "description": "Restore notifications after device restart",
+        "required": false
+      }
+    ]
+  },
+  
+  "privacy_policy": {
+    "url": "https://ecomind.app/privacy",
+    "summary": "EcoMind is built with privacy as a fundamental principle. We collect only the data necessary to provide our relationship management features, and we never sell or share your personal information with third parties. All AI processing requires explicit consent, and you can export or delete your data at any time. We are fully GDPR compliant and provide transparent privacy impact assessments for all features."
+  },
+  
+  "terms_of_service": {
+    "url": "https://ecomind.app/terms",
+    "summary": "By using EcoMind, you agree to use the app responsibly for managing your personal relationships. You retain ownership of all your data, and we provide the tools to export or delete it as needed. Our terms are designed to protect both your privacy and the integrity of the service."
+  },
+  
+  "support": {
+    "website": "https://ecomind.app/support", 
+    "email": "support@ecomind.app",
+    "help_center": "https://help.ecomind.app",
+    "feedback": "https://ecomind.app/feedback"
+  },
+  
+  "marketing": {
+    "target_audience": {
+      "primary": "Adults aged 25-45 who value meaningful relationships and privacy",
+      "secondary": "Professionals managing client relationships, parents, students",
+      "demographics": "Privacy-conscious users, relationship-focused individuals, busy professionals"
+    },
+    
+    "value_propositions": [
+      "Never forget a birthday or important conversation again",
+      "Build deeper relationships with AI-powered insights",
+      "Your data stays yours with industry-leading privacy controls", 
+      "Beautiful, accessible design that works for everyone",
+      "Transform scattered contacts into meaningful relationship management"
+    ],
+    
+    "competitive_advantages": [
+      "Privacy-first approach with GDPR compliance",
+      "AI suggestions with transparent consent management",
+      "Visual relationship mapping with ecomap interface",
+      "Glassmorphism UI with full accessibility support",
+      "Offline functionality with cloud sync",
+      "Comprehensive interaction tracking and memory building"
+    ],
+    
+    "press_kit": {
+      "tagline": "Build meaningful relationships with privacy-first AI assistance",
+      "elevator_pitch": "EcoMind is the personal relationship assistant that helps you nurture connections through AI-powered insights while keeping your data completely private and under your control.",
+      "founder_story": "Born from the realization that our digital tools weren't helping us maintain human connections, EcoMind bridges the gap between technology and meaningful relationships.",
+      "awards": [],
+      "press_coverage": []
+    }
+  },
+  
+  "localization": {
+    "supported_languages": ["en-US"],
+    "planned_languages": ["es-ES", "fr-FR", "de-DE", "it-IT", "pt-BR", "ja-JP", "ko-KR", "zh-CN"],
+    "rtl_support": false
+  },
+  
+  "monetization": {
+    "model": "freemium",
+    "free_features": [
+      "Basic relationship tracking (up to 50 people)",
+      "Manual interaction logging",
+      "Basic privacy controls",
+      "Core ecomap visualization"
+    ],
+    "premium_features": [
+      "Unlimited relationship tracking",
+      "AI-powered suggestions and insights",
+      "Advanced privacy analytics",
+      "Cloud sync across devices",
+      "Premium support",
+      "Advanced export options"
+    ],
+    "pricing": {
+      "premium_monthly": "$4.99",
+      "premium_yearly": "$39.99",
+      "premium_lifetime": "$199.99"
+    },
+    "trial_period": "14 days"
+  },
+  
+  "technical_requirements": {
+    "min_storage": "500MB",
+    "recommended_storage": "2GB",
+    "network": "WiFi or cellular data for sync and AI features",
+    "performance": "Optimized for smooth 60fps animations and responsive UI"
+  }
+}
