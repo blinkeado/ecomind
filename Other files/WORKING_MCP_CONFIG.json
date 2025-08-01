@@ -1,0 +1,53 @@
+{
+  "mcpServers": {
+    "react-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/YOUR_USERNAME/mcp-servers/react-mcp/index.js"
+      ]
+    },
+    "react-analyzer-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/YOUR_USERNAME/mcp-servers/react-analyzer-mcp/build/index.js"
+      ]
+    },
+    "playwright-mcp": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser", "chrome",
+        "--config", "/path/to/your/project/playwright.config.ts",
+        "--storage-state", "/path/to/your/project/tests/.auth/user.json",
+        "--ignore-https-errors",
+        "--no-sandbox",
+        "--caps", "vision"
+      ]
+    },
+    "nextjs-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/YOUR_USERNAME/.nvm/versions/node/vYOUR_NODE_VERSION/lib/node_modules/next-mcp-server/dist/index.js",
+        "--transport=stdio"
+      ],
+      "env": {
+        "PROJECT_PATH": "/path/to/your/project"
+      }
+    },
+    "filesystem-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/YOUR_USERNAME/mcp-servers/mcp-official-servers/src/filesystem/dist/index.js"
+      ],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/path/to/your/project,/Users/YOUR_USERNAME/mcp-servers,/tmp"
+      }
+    },
+    "memory-mcp": {
+      "command": "node",
+      "args": [
+        "/Users/YOUR_USERNAME/mcp-servers/mcp-official-servers/src/memory/dist/index.js"
+      ]
+    }
+  }
+}
