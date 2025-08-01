@@ -1,13 +1,16 @@
-# VALIDATED WORKING CONFIGURATION
-# CLI + Official Docs + Cursor Analysis Agreement
-
 source 'https://rubygems.org'
 
-# Fix ActiveSupport Logger error - downgrade from 1.3.5 to 1.3.4
-gem "concurrent-ruby", "1.3.4"
+# You may use http://rbenv.org/ or https://rvm.io/ to install and use this version
+ruby ">= 2.6.10"
 
-# Keep current working CocoaPods version
-gem "cocoapods", "1.16.2"
+# Exclude problematic versions of cocoapods and activesupport that causes build failures.
+gem 'cocoapods', '>= 1.13', '!= 1.15.0', '!= 1.15.1'
+gem 'activesupport', '>= 6.1.7.5', '!= 7.1.0'
+gem 'xcodeproj', '< 1.26.0'
+gem 'concurrent-ruby', '< 1.3.4'
 
-# Bundle gems for consistent environment
-gem "bundler", "~> 2.6"
+# Ruby 3.4.0 has removed some libraries from the standard library.
+gem 'bigdecimal'
+gem 'logger'
+gem 'benchmark'
+gem 'mutex_m'

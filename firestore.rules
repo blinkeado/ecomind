@@ -22,6 +22,17 @@ service cloud.firestore {
     }
     
     /**
+     * Check if user has granted specific privacy permission
+     * In production, this would check user's privacy settings
+     */
+    function hasPrivacyPermission(userId, permission) {
+      return isOwner(userId);
+      // TODO: Implement actual privacy settings check when user preferences are loaded
+      // return isOwner(userId) && 
+      //        get(/databases/$(database)/documents/users/$(userId)/preferences/privacy).data[permission] == true;
+    }
+    
+    /**
      * Validates that user is part of authorized users list for shared resources
      * Used in shared relationship contexts where multiple users have access
      */
@@ -110,6 +121,38 @@ service cloud.firestore {
       }
       
       /**
+       * Privacy settings - GDPR compliance
+       */
+      match /privacy_settings/{settingId} {
+        allow read, write: if isOwner(userId) && 
+                           isValidDocumentSize();
+      }
+      
+      /**
+       * Consent history - immutable audit trail for GDPR
+       */
+      match /consent_history/{consentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && 
+                        isValidDocumentSize() &&
+                        request.resource.data.keys().hasAll(['timestamp', 'version', 'permissions', 'granted']) &&
+                        request.resource.data.timestamp is timestamp;
+        // No updates or deletes - consent history is immutable
+      }
+      
+      /**
+       * Privacy audit log - immutable audit trail
+       */
+      match /privacy_audit/{auditId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && 
+                        isValidDocumentSize() &&
+                        request.resource.data.keys().hasAll(['timestamp', 'action', 'permission_used']) &&
+                        request.resource.data.timestamp is timestamp;
+        // No updates or deletes - audit logs are immutable
+      }
+      
+      /**
        * User's relationship data - core private data
        */
       match /relationships/{relationshipId} {
@@ -137,21 +180,28 @@ service cloud.firestore {
         
         /**
          * Context nodes - AI-extracted or user-added contextual information
+         * Requires AI processing consent for AI-generated content
          */
         match /context/{contextId} {
-          allow read, write: if isOwner(userId) && 
-                             isValidDocumentSize();
+          allow read: if isOwner(userId);
+          allow write: if isOwner(userId) && 
+                         hasPrivacyPermission(userId, 'ai_processing') &&
+                         isValidDocumentSize();
         }
       }
       
       /**
        * User's prompts and suggestions - AI-generated relationship prompts
+       * Requires AI processing consent
        */
       match /prompts/{promptId} {
-        allow read, write: if isOwner(userId) && 
-                           isValidDocumentSize();
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) && 
+                       hasPrivacyPermission(userId, 'ai_processing') &&
+                       isValidDocumentSize();
         
         allow create, update: if isOwner(userId) && 
+                               hasPrivacyPermission(userId, 'ai_processing') &&
                                isValidPromptData() &&
                                isValidDocumentSize() &&
                                isWithinWriteRateLimit();
@@ -298,6 +348,50 @@ service cloud.firestore {
     
     match /reports/{reportId} {
       allow read, write: if false; // No client access - server-side only
+    }
+
+    // ============================================================================
+    // GDPR COMPLIANCE COLLECTIONS - Data export and deletion requests
+    // ============================================================================
+    
+    /**
+     * GDPR data export requests - users can request their data
+     */
+    match /data_export_requests/{requestId} {
+      // Users can read their own export requests
+      allow read: if isAuthenticated() && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Users can create export requests for themselves
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['userId', 'timestamp', 'status']) &&
+                      request.resource.data.timestamp is timestamp &&
+                      isValidDocumentSize();
+      
+      // Only system can update status (via Cloud Functions)
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    /**
+     * GDPR data deletion requests - users can request data deletion
+     */
+    match /data_deletion_requests/{requestId} {
+      // Users can read their own deletion requests
+      allow read: if isAuthenticated() && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Users can create deletion requests for themselves
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      request.resource.data.keys().hasAll(['userId', 'timestamp', 'status', 'reason']) &&
+                      request.resource.data.timestamp is timestamp &&
+                      isValidDocumentSize();
+      
+      // Only system can update status (via Cloud Functions)
+      allow update: if false;
+      allow delete: if false;
     }
 
     // ============================================================================
