@@ -1,9 +1,10 @@
 // SOURCE: IMPLEMENTATION_PLAN.md line 85 + user management requirements
 // VERIFIED: User profile management and lifecycle functions
 
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { onCall } from "firebase-functions/v2/https";
-import { onUserCreated, onUserDeleted } from "firebase-functions/v2/identity";
+// User lifecycle events - using v1 auth functions (stable in v6.4.0)
+// v2 identity only has beforeUserCreated (blocking functions), not lifecycle events
 import * as admin from "firebase-admin";
 
 /**
@@ -50,8 +51,7 @@ interface UpdateProfileRequest {
  * Create User Profile on Registration
  * Triggered when a new user signs up
  */
-export const onUserCreate = onUserCreated(async (event) => {
-  const user = event.data;
+export const onUserCreate = functions.auth.user().onCreate(async (user, context) => {
   try {
     const db = admin.firestore();
     
@@ -136,8 +136,7 @@ export const onUserCreate = onUserCreated(async (event) => {
  * Clean Up User Data on Account Deletion
  * Triggered when a user deletes their account
  */
-export const onUserDelete = onUserDeleted(async (event) => {
-  const user = event.data;
+export const onUserDelete = functions.auth.user().onDelete(async (user, context) => {
   try {
     const db = admin.firestore();
     const batch = db.batch();

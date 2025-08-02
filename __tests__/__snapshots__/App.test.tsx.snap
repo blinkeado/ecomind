@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EcoMind App initializes with auth provider context 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "justifyContent": "center",
+    }
+  }
+>
+  <ActivityIndicator
+    color="#3B82F6"
+    size="large"
+  />
+  <Text
+    style={
+      [
+        {
+          "fontSize": 16,
+          "lineHeight": 24,
+        },
+        {
+          "color": "#6B7280",
+        },
+        {
+          "fontWeight": "400",
+        },
+        {
+          "marginTop": 12,
+          "textAlign": "center",
+        },
+      ]
+    }
+  >
+    Loading...
+  </Text>
+</View>
+`;

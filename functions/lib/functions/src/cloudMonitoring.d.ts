@@ -14,22 +14,39 @@
  * Record custom metric to Google Cloud Monitoring
  * Following official Google Cloud Monitoring API patterns
  */
-export declare const recordCustomMetric: any;
+export declare const recordCustomMetric: import("firebase-functions/v2/https").CallableFunction<any, Promise<{
+    success: boolean;
+    timestamp: string;
+}>, unknown>;
 /**
  * Batch record multiple metrics for efficiency
  */
-export declare const recordBatchMetrics: any;
+export declare const recordBatchMetrics: import("firebase-functions/v2/https").CallableFunction<any, Promise<{
+    success: boolean;
+    recordedCount: number;
+    timestamp: string;
+}>, unknown>;
 /**
  * Scheduled function to collect and report system metrics
  * Runs every 5 minutes following official scheduling patterns
  */
-export declare const collectSystemMetrics: any;
+export declare const collectSystemMetrics: import("firebase-functions/v2/scheduler").ScheduleFunction;
 /**
  * Get metrics data for dashboard
  */
-export declare const getMetricsData: any;
+export declare const getMetricsData: import("firebase-functions/v2/https").CallableFunction<any, Promise<{
+    metricsData: {};
+    timeRange: {
+        startTime: string;
+        endTime: string;
+    };
+}>, unknown>;
 /**
  * Create alerting policy for critical metrics
  */
-export declare const createAlertingPolicy: any;
+export declare const createAlertingPolicy: import("firebase-functions/v2/https").CallableFunction<any, Promise<{
+    success: boolean;
+    policyName: any;
+    displayName: any;
+}>, unknown>;
 //# sourceMappingURL=cloudMonitoring.d.ts.map

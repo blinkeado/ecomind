@@ -24,17 +24,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.promptGeneration = exports.evaluatePromptRelevance = exports.generateBulkPrompts = exports.generatePrompt = void 0;
 const functions = __importStar(require("firebase-functions"));
+const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const generative_ai_1 = require("@google/generative-ai");
 const privacyControls_1 = require("./privacyControls");
 /**
  * Gemini Flash Configuration
  */
-const GEMINI_API_KEY = (_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.api_key;
+const GEMINI_API_KEY = functions.config().gemini?.api_key;
 const genAI = GEMINI_API_KEY ? new generative_ai_1.GoogleGenerativeAI(GEMINI_API_KEY) : null;
 // Gemini Flash model - optimized for speed and efficiency
 const MODEL_NAME = "gemini-1.5-flash";
@@ -42,7 +42,9 @@ const MODEL_NAME = "gemini-1.5-flash";
  * Generate AI Prompt for Relationship Management
  * Uses Gemini Flash for fast, contextual suggestions
  */
-exports.generatePrompt = functions.https.onCall(async (data, context) => {
+exports.generatePrompt = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     try {
         // Verify user authentication
         if (!context.auth) {
@@ -104,7 +106,9 @@ exports.generatePrompt = functions.https.onCall(async (data, context) => {
  * Generate Multiple Prompts in Bulk
  * For relationship health analysis and proactive suggestions
  */
-exports.generateBulkPrompts = functions.https.onCall(async (data, context) => {
+exports.generateBulkPrompts = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     try {
         // Verify authentication
         if (!context.auth || context.auth.uid !== data.userId) {
@@ -180,8 +184,9 @@ exports.generateBulkPrompts = functions.https.onCall(async (data, context) => {
  * Evaluate Prompt Relevance
  * Uses AI to score and filter prompts for quality
  */
-exports.evaluatePromptRelevance = functions.https.onCall(async (data, context) => {
-    var _a;
+exports.evaluatePromptRelevance = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     try {
         if (!context.auth || context.auth.uid !== data.userId) {
             throw new functions.https.HttpsError("permission-denied", "Unauthorized");
@@ -205,7 +210,7 @@ Return a JSON array with scores and brief explanations:
         const response = await result.response;
         const text = response.text();
         // Parse AI response
-        const scores = JSON.parse(((_a = text.match(/\[.*\]/s)) === null || _a === void 0 ? void 0 : _a[0]) || "[]");
+        const scores = JSON.parse(text.match(/\[.*\]/s)?.[0] || "[]");
         return {
             evaluations: scores,
             timestamp: new Date().toISOString()
@@ -259,7 +264,6 @@ async function generateSinglePrompt(data) {
  * Build Context-Aware Prompt for Gemini
  */
 function buildPromptContext(data) {
-    var _a, _b;
     const { relationshipContext } = data;
     return `
 You are a relationship assistant helping people maintain meaningful connections. 
@@ -273,10 +277,10 @@ RELATIONSHIP CONTEXT:
 - Personal Context: ${relationshipContext.personalContext || "None"}
 
 RECENT INTERACTIONS:
-${((_a = relationshipContext.recentInteractions) === null || _a === void 0 ? void 0 : _a.map(i => `- ${i.type} on ${i.date}: ${i.notes || "No notes"}`).join("\n")) || "No recent interactions"}
+${relationshipContext.recentInteractions?.map(i => `- ${i.type} on ${i.date}: ${i.notes || "No notes"}`).join("\n") || "No recent interactions"}
 
 LIFE EVENTS:
-${((_b = relationshipContext.lifeEvents) === null || _b === void 0 ? void 0 : _b.map(e => `- ${e.type} on ${e.date}: ${e.description}`).join("\n")) || "No recent life events"}
+${relationshipContext.lifeEvents?.map(e => `- ${e.type} on ${e.date}: ${e.description}`).join("\n") || "No recent life events"}
 
 REQUIREMENTS:
 1. Be specific and actionable

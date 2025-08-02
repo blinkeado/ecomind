@@ -1,9 +1,9 @@
 // SOURCE: IMPLEMENTATION_PLAN.md line 66 + AI prompt management service  
 // VERIFIED: Client service for AI prompt generation and management
 
-import { httpsCallable } from 'firebase/functions';
-import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, Timestamp } from 'firebase/firestore';
-import { db, functions } from './firebase';
+import functions from '@react-native-firebase/functions';
+import firestore from '@react-native-firebase/firestore';
+import { db } from './firebase';
 import { RelationshipPrompt, PromptStatus, PromptType, PromptUrgency } from '../types/prompt';
 import { PersonDocument } from '../types/relationship';
 
@@ -61,9 +61,9 @@ export interface GeneratedPromptResponse {
  * Prompt Management Service Class
  */
 export class PromptsService {
-  private generatePromptFunction = httpsCallable(functions, 'generatePrompt');
-  private generateBulkPromptsFunction = httpsCallable(functions, 'generateBulkPrompts');
-  private evaluatePromptFunction = httpsCallable(functions, 'evaluatePromptRelevance');
+  private generatePromptFunction = functions().httpsCallable('generatePrompt');
+  private generateBulkPromptsFunction = functions().httpsCallable('generateBulkPrompts');
+  private evaluatePromptFunction = functions().httpsCallable('evaluatePromptRelevance');
 
   /**
    * Generate AI prompt for a specific relationship
@@ -196,12 +196,12 @@ export class PromptsService {
    */
   async savePrompt(userId: string, prompt: Omit<RelationshipPrompt, 'id'>): Promise<string> {
     try {
-      const promptsRef = collection(db, 'users', userId, 'prompts');
-      const docRef = await addDoc(promptsRef, {
+      const promptsRef = firestore().collection('users').doc(userId).collection('prompts');
+      const docRef = await promptsRef.add({
         ...prompt,
-        createdAt: Timestamp.fromDate(prompt.createdAt),
-        lastUpdatedAt: Timestamp.fromDate(prompt.lastUpdatedAt),
-        expiresAt: prompt.expiresAt ? Timestamp.fromDate(prompt.expiresAt) : null,
+        createdAt: firestore.Timestamp.fromDate(prompt.createdAt),
+        lastUpdatedAt: firestore.Timestamp.fromDate(prompt.lastUpdatedAt),
+        expiresAt: prompt.expiresAt ? firestore.Timestamp.fromDate(prompt.expiresAt) : null,
       });
       
       console.log('Prompt saved:', docRef.id);
@@ -222,17 +222,17 @@ export class PromptsService {
     completedAt?: Date
   ): Promise<void> {
     try {
-      const promptRef = doc(db, 'users', userId, 'prompts', promptId);
+      const promptRef = firestore().collection('users').doc(userId).collection('prompts').doc(promptId);
       const updates: any = {
         status,
-        lastUpdatedAt: Timestamp.now(),
+        lastUpdatedAt: firestore.Timestamp.now(),
       };
 
       if (completedAt) {
-        updates.completedAt = Timestamp.fromDate(completedAt);
+        updates.completedAt = firestore.Timestamp.fromDate(completedAt);
       }
 
-      await updateDoc(promptRef, updates);
+      await promptRef.update(updates);
       console.log('Prompt status updated:', promptId, status);
     } catch (error) {
       console.error('Failed to update prompt status:', error);
@@ -245,8 +245,8 @@ export class PromptsService {
    */
   async deletePrompt(userId: string, promptId: string): Promise<void> {
     try {
-      const promptRef = doc(db, 'users', userId, 'prompts', promptId);
-      await deleteDoc(promptRef);
+      const promptRef = firestore().collection('users').doc(userId).collection('prompts').doc(promptId);
+      await promptRef.delete();
       console.log('Prompt deleted:', promptId);
     } catch (error) {
       console.error('Failed to delete prompt:', error);
@@ -262,15 +262,15 @@ export class PromptsService {
     callback: (prompts: RelationshipPrompt[]) => void,
     maxPrompts = 50
   ): () => void {
-    const promptsRef = collection(db, 'users', userId, 'prompts');
-    const q = query(
-      promptsRef,
-      where('status', '==', 'active'),
-      orderBy('createdAt', 'desc'),
-      limit(maxPrompts)
-    );
+    const promptsRef = firestore()
+      .collection('users')
+      .doc(userId)
+      .collection('prompts')
+      .where('status', '==', 'active')
+      .orderBy('createdAt', 'desc')
+      .limit(maxPrompts);
 
-    return onSnapshot(q, (snapshot) => {
+    return promptsRef.onSnapshot((snapshot) => {
       const prompts = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -292,15 +292,15 @@ export class PromptsService {
     personId: string,
     callback: (prompts: RelationshipPrompt[]) => void
   ): () => void {
-    const promptsRef = collection(db, 'users', userId, 'prompts');
-    const q = query(
-      promptsRef,
-      where('personId', '==', personId),
-      orderBy('createdAt', 'desc'),
-      limit(20)
-    );
+    const promptsRef = firestore()
+      .collection('users')
+      .doc(userId)
+      .collection('prompts')
+      .where('personId', '==', personId)
+      .orderBy('createdAt', 'desc')
+      .limit(20);
 
-    return onSnapshot(q, (snapshot) => {
+    return promptsRef.onSnapshot((snapshot) => {
       const prompts = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -333,11 +333,11 @@ export class PromptsService {
    */
   async snoozePrompt(userId: string, promptId: string, snoozeUntil: Date): Promise<void> {
     try {
-      const promptRef = doc(db, 'users', userId, 'prompts', promptId);
-      await updateDoc(promptRef, {
+      const promptRef = firestore().collection('users').doc(userId).collection('prompts').doc(promptId);
+      await promptRef.update({
         status: 'snoozed',
-        snoozedUntil: Timestamp.fromDate(snoozeUntil),
-        lastUpdatedAt: Timestamp.now(),
+        snoozedUntil: firestore.Timestamp.fromDate(snoozeUntil),
+        lastUpdatedAt: firestore.Timestamp.now(),
       });
       console.log('Prompt snoozed until:', snoozeUntil);
     } catch (error) {

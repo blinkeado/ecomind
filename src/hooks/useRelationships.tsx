@@ -24,6 +24,8 @@ interface RelationshipsState {
   loading: boolean;
   error: string | null;
   lastUpdated: Date | null;
+  isOnline: boolean;
+  hasPendingWrites: boolean;
 }
 
 /**
@@ -56,12 +58,14 @@ interface UseRelationshipsOptions {
  * SOURCE: React Hooks Official Documentation - Custom Hooks
  */
 export const useRelationships = (options: UseRelationshipsOptions = {}) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isOnline } = useAuth();
   const [state, setState] = useState<RelationshipsState>({
     relationships: [],
     loading: false,
     error: null,
     lastUpdated: null,
+    isOnline: true,
+    hasPendingWrites: false,
   });
   
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
@@ -113,6 +117,7 @@ export const useRelationships = (options: UseRelationshipsOptions = {}) => {
             loading: false,
             lastUpdated: new Date(),
             error: null,
+            isOnline,
           }));
         },
         (error) => {
@@ -121,6 +126,7 @@ export const useRelationships = (options: UseRelationshipsOptions = {}) => {
             ...prev,
             error: error.message,
             loading: false,
+            isOnline: false,
           }));
         }
       );
@@ -262,6 +268,14 @@ export const useRelationships = (options: UseRelationshipsOptions = {}) => {
   /**
    * Setup effect for initial load and real-time listener
    */
+  /**
+   * Sync online state from auth context
+   * SOURCE: React Hooks Official Documentation - useEffect
+   */
+  useEffect(() => {
+    setState(prev => ({ ...prev, isOnline }));
+  }, [isOnline]);
+
   useEffect(() => {
     if (!isAuthenticated || !user?.uid) {
       setState({
@@ -269,6 +283,8 @@ export const useRelationships = (options: UseRelationshipsOptions = {}) => {
         loading: false,
         error: null,
         lastUpdated: null,
+        isOnline: false,
+        hasPendingWrites: false,
       });
       return;
     }

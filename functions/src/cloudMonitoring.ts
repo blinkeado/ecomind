@@ -11,7 +11,8 @@
  * - Automated alerting setup
  */
 
-import { onCall, onSchedule } from 'firebase-functions/v2';
+import { onCall } from 'firebase-functions/v2/https';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from 'firebase-functions';
 import { MetricServiceClient } from '@google-cloud/monitoring';
 import * as admin from 'firebase-admin';

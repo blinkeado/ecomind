@@ -32,7 +32,6 @@ exports.generateEmbedding = (0, https_1.onCall)({
     // Enable CORS for React Native
     cors: true,
 }, async (request) => {
-    var _a, _b, _c, _d, _e, _f, _g;
     const startTime = Date.now();
     try {
         // Validate input
@@ -44,7 +43,7 @@ exports.generateEmbedding = (0, https_1.onCall)({
             throw new Error('Content exceeds maximum length of 2000 characters');
         }
         // Validate user authentication
-        if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+        if (!request.auth?.uid) {
             throw new Error('Authentication required');
         }
         // Log for audit purposes (privacy-compliant)
@@ -61,7 +60,7 @@ exports.generateEmbedding = (0, https_1.onCall)({
             contents: [{ parts: [{ text: processedContent }] }],
         };
         const response = await textEmbeddingModel.embedContent(embeddingRequest);
-        const embedding = (_d = (_c = (_b = response.response.predictions) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.embeddings) === null || _d === void 0 ? void 0 : _d.values;
+        const embedding = response.response.predictions?.[0]?.embeddings?.values;
         if (!embedding || !Array.isArray(embedding)) {
             throw new Error('Failed to generate embedding: Invalid response from Vertex AI');
         }
@@ -89,10 +88,10 @@ exports.generateEmbedding = (0, https_1.onCall)({
         const processingTime = Date.now() - startTime;
         // Log error for monitoring
         firebase_functions_1.logger.error('Embedding generation failed', {
-            userId: (_e = request.auth) === null || _e === void 0 ? void 0 : _e.uid,
+            userId: request.auth?.uid,
             error: error instanceof Error ? error.message : 'Unknown error',
             processingTime,
-            contentLength: ((_g = (_f = request.data) === null || _f === void 0 ? void 0 : _f.content) === null || _g === void 0 ? void 0 : _g.length) || 0,
+            contentLength: request.data?.content?.length || 0,
         });
         // Return user-friendly error
         throw new Error(`Embedding generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -107,11 +106,10 @@ exports.generateBatchEmbeddings = (0, https_1.onCall)({
     timeoutSeconds: 300, // 5 minutes for batch processing
     cors: true,
 }, async (request) => {
-    var _a, _b;
     const startTime = Date.now();
     try {
         // Validate authentication
-        if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+        if (!request.auth?.uid) {
             throw new Error('Authentication required');
         }
         const { contents, contentType } = request.data;
@@ -133,14 +131,13 @@ exports.generateBatchEmbeddings = (0, https_1.onCall)({
         for (let i = 0; i < contents.length; i += batchSize) {
             const batch = contents.slice(i, i + batchSize);
             const batchPromises = batch.map(async (content, index) => {
-                var _a, _b, _c;
                 try {
                     const processedContent = preprocessContent(content, contentType);
                     const embeddingRequest = {
                         contents: [{ parts: [{ text: processedContent }] }],
                     };
                     const response = await textEmbeddingModel.embedContent(embeddingRequest);
-                    const embedding = (_c = (_b = (_a = response.response.predictions) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.embeddings) === null || _c === void 0 ? void 0 : _c.values;
+                    const embedding = response.response.predictions?.[0]?.embeddings?.values;
                     if (!embedding || embedding.length !== 768) {
                         throw new Error('Invalid embedding response');
                     }
@@ -179,7 +176,7 @@ exports.generateBatchEmbeddings = (0, https_1.onCall)({
     catch (error) {
         const processingTime = Date.now() - startTime;
         firebase_functions_1.logger.error('Batch embedding generation failed', {
-            userId: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.uid,
+            userId: request.auth?.uid,
             error: error instanceof Error ? error.message : 'Unknown error',
             processingTime,
         });
@@ -222,10 +219,9 @@ exports.checkEmbeddingServiceHealth = (0, https_1.onCall)({
     timeoutSeconds: 30,
     cors: true,
 }, async (request) => {
-    var _a, _b, _c, _d;
     try {
         // Validate authentication (admin only)
-        if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+        if (!request.auth?.uid) {
             throw new Error('Authentication required');
         }
         const startTime = Date.now();
@@ -235,19 +231,19 @@ exports.checkEmbeddingServiceHealth = (0, https_1.onCall)({
             contents: [{ parts: [{ text: testContent }] }],
         };
         const response = await textEmbeddingModel.embedContent(embeddingRequest);
-        const embedding = (_d = (_c = (_b = response.response.predictions) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.embeddings) === null || _d === void 0 ? void 0 : _d.values;
+        const embedding = response.response.predictions?.[0]?.embeddings?.values;
         const responseTime = Date.now() - startTime;
         const isHealthy = embedding && embedding.length === 768;
         firebase_functions_1.logger.info('Embedding service health check', {
             isHealthy,
             responseTime,
-            embeddingDimensions: (embedding === null || embedding === void 0 ? void 0 : embedding.length) || 0,
+            embeddingDimensions: embedding?.length || 0,
         });
         return {
             healthy: isHealthy,
             responseTime,
             model: 'text-embedding-004',
-            dimensions: (embedding === null || embedding === void 0 ? void 0 : embedding.length) || 0,
+            dimensions: embedding?.length || 0,
             timestamp: new Date().toISOString(),
         };
     }

@@ -26,10 +26,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateUserDataExport = exports.deleteUserData = exports.RETENTION_POLICIES = exports.dataRetentionHealthCheck = exports.scheduledDataCleanup = exports.processDataExportRequest = exports.processDataDeletionRequest = void 0;
-const functions = __importStar(require("firebase-functions"));
 const https_1 = require("firebase-functions/v2/https");
+const firestore_1 = require("firebase-functions/v2/firestore");
+const scheduler_1 = require("firebase-functions/v2/scheduler");
 const admin = __importStar(require("firebase-admin"));
-const firestore_1 = require("firebase-admin/firestore");
+const firestore_2 = require("firebase-admin/firestore");
 // Initialize Firebase Admin if not already initialized
 if (admin.apps.length === 0) {
     admin.initializeApp();
@@ -55,9 +56,9 @@ exports.RETENTION_POLICIES = RETENTION_POLICIES;
  * GDPR Data Deletion Request Handler
  * Triggered when a user requests data deletion
  */
-exports.processDataDeletionRequest = functions.firestore
-    .document('data_deletion_requests/{requestId}')
-    .onCreate(async (snapshot, context) => {
+exports.processDataDeletionRequest = (0, firestore_1.onDocumentCreated)('data_deletion_requests/{requestId}', async (event) => {
+    const snapshot = event.data;
+    const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data();
     console.log(`Processing data deletion request ${requestId} for user ${request.userId}`);
@@ -65,7 +66,7 @@ exports.processDataDeletionRequest = functions.firestore
         // Update status to processing
         await snapshot.ref.update({
             status: 'processing',
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
         // Log the deletion request for audit trail
         await logPrivacyAction(request.userId, 'data_deletion', 'data_collection', `GDPR data deletion request initiated. Reason: ${request.reason}`, request.requestedBy);
@@ -74,8 +75,8 @@ exports.processDataDeletionRequest = functions.firestore
         // Mark as completed
         await snapshot.ref.update({
             status: 'completed',
-            completedAt: firestore_1.FieldValue.serverTimestamp(),
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            completedAt: firestore_2.FieldValue.serverTimestamp(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
         console.log(`Data deletion completed for user ${request.userId}`);
     }
@@ -85,7 +86,7 @@ exports.processDataDeletionRequest = functions.firestore
         await snapshot.ref.update({
             status: 'failed',
             errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
         // Log the failure
         await logPrivacyAction(request.userId, 'data_deletion', 'data_collection', `Data deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'system');
@@ -95,9 +96,9 @@ exports.processDataDeletionRequest = functions.firestore
  * GDPR Data Export Request Handler
  * Triggered when a user requests data export
  */
-exports.processDataExportRequest = functions.firestore
-    .document('data_export_requests/{requestId}')
-    .onCreate(async (snapshot, context) => {
+exports.processDataExportRequest = (0, firestore_1.onDocumentCreated)('data_export_requests/{requestId}', async (event) => {
+    const snapshot = event.data;
+    const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data();
     console.log(`Processing data export request ${requestId} for user ${request.userId}`);
@@ -105,7 +106,7 @@ exports.processDataExportRequest = functions.firestore
         // Update status to processing
         await snapshot.ref.update({
             status: 'processing',
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
         // Log the export request
         await logPrivacyAction(request.userId, 'data_export', 'data_export', 'GDPR data export request initiated', request.userId);
@@ -121,7 +122,7 @@ exports.processDataExportRequest = functions.firestore
             downloadUrl,
             expiresAt,
             fileSize: JSON.stringify(exportData).length,
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
         console.log(`Data export completed for user ${request.userId}`);
     }
@@ -131,7 +132,7 @@ exports.processDataExportRequest = functions.firestore
         await snapshot.ref.update({
             status: 'failed',
             errorMessage: error instanceof Error ? error.message : 'Unknown error',
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
     }
 });
@@ -139,10 +140,9 @@ exports.processDataExportRequest = functions.firestore
  * Scheduled cleanup of inactive users and old data
  * Runs daily at 2 AM UTC
  */
-exports.scheduledDataCleanup = functions.pubsub
-    .schedule('0 2 * * *')
-    .timeZone('UTC')
-    .onRun(async (context) => {
+exports.scheduledDataCleanup = (0, scheduler_1.onSchedule)('0 2 * * *', // 2 AM daily
+async (event) => {
+    const context = event;
     console.log('Starting scheduled data cleanup...');
     try {
         const cleanupTasks = await Promise.allSettled([
@@ -301,7 +301,7 @@ async function generateUserDataExport(userId) {
     // Calculate statistics
     exportData.statistics = {
         totalRelationships: exportData.relationships.length,
-        totalInteractions: exportData.relationships.reduce((sum, rel) => { var _a; return sum + (((_a = rel.interactions) === null || _a === void 0 ? void 0 : _a.length) || 0); }, 0),
+        totalInteractions: exportData.relationships.reduce((sum, rel) => sum + (rel.interactions?.length || 0), 0),
         totalPrompts: exportData.prompts.length,
         exportSizeBytes: JSON.stringify(exportData).length,
     };
@@ -337,7 +337,7 @@ async function cleanupInactiveUsers() {
         // Create a deletion request for inactive user
         await db.collection('data_deletion_requests').add({
             userId: userDoc.id,
-            timestamp: firestore_1.FieldValue.serverTimestamp(),
+            timestamp: firestore_2.FieldValue.serverTimestamp(),
             status: 'pending',
             reason: 'Automated cleanup - inactive user',
             requestedBy: 'system',
@@ -386,8 +386,8 @@ async function cleanupExpiredExports() {
     expiredExports.docs.forEach(doc => {
         batch.update(doc.ref, {
             status: 'expired',
-            downloadUrl: firestore_1.FieldValue.delete(),
-            lastUpdated: firestore_1.FieldValue.serverTimestamp(),
+            downloadUrl: firestore_2.FieldValue.delete(),
+            lastUpdated: firestore_2.FieldValue.serverTimestamp(),
         });
     });
     if (expiredExports.size > 0) {
@@ -441,7 +441,7 @@ async function logPrivacyAction(userId, action, permissionUsed, details, perform
     try {
         await db.collection('users').doc(userId)
             .collection('privacy_audit').add({
-            timestamp: firestore_1.FieldValue.serverTimestamp(),
+            timestamp: firestore_2.FieldValue.serverTimestamp(),
             action,
             permission_used: permissionUsed,
             details,

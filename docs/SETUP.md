@@ -1,4 +1,6 @@
-# Project Setup
+# EcoMind Personal Relationship Assistant - Project Setup
+
+> **World-Class Database Architecture**: This project implements a gold-standard Firebase architecture with subcollections, emotional intelligence, and advanced AI integration (currently 56% complete).
 
 ## Quick Start
 

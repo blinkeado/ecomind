@@ -36,7 +36,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAlertingPolicy = exports.getMetricsData = exports.collectSystemMetrics = exports.recordBatchMetrics = exports.recordCustomMetric = void 0;
-const v2_1 = require("firebase-functions/v2");
+const https_1 = require("firebase-functions/v2/https");
+const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firebase_functions_1 = require("firebase-functions");
 const monitoring_1 = require("@google-cloud/monitoring");
 const admin = __importStar(require("firebase-admin"));
@@ -58,13 +59,12 @@ const CUSTOM_METRICS = {
  * Record custom metric to Google Cloud Monitoring
  * Following official Google Cloud Monitoring API patterns
  */
-exports.recordCustomMetric = (0, v2_1.onCall)({
+exports.recordCustomMetric = (0, https_1.onCall)({
     region: 'us-central1',
     memory: '1GiB',
     timeoutSeconds: 60,
 }, async (request) => {
-    var _a, _b;
-    if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+    if (!request.auth?.uid) {
         throw new Error('Authentication required');
     }
     try {
@@ -124,7 +124,7 @@ exports.recordCustomMetric = (0, v2_1.onCall)({
     catch (error) {
         firebase_functions_1.logger.error('Failed to record custom metric', {
             error: error instanceof Error ? error.message : 'Unknown error',
-            userId: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.uid
+            userId: request.auth?.uid
         });
         throw error;
     }
@@ -132,13 +132,12 @@ exports.recordCustomMetric = (0, v2_1.onCall)({
 /**
  * Batch record multiple metrics for efficiency
  */
-exports.recordBatchMetrics = (0, v2_1.onCall)({
+exports.recordBatchMetrics = (0, https_1.onCall)({
     region: 'us-central1',
     memory: '1GiB',
     timeoutSeconds: 120,
 }, async (request) => {
-    var _a, _b;
-    if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+    if (!request.auth?.uid) {
         throw new Error('Authentication required');
     }
     try {
@@ -209,7 +208,7 @@ exports.recordBatchMetrics = (0, v2_1.onCall)({
     catch (error) {
         firebase_functions_1.logger.error('Failed to record batch metrics', {
             error: error instanceof Error ? error.message : 'Unknown error',
-            userId: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.uid
+            userId: request.auth?.uid
         });
         throw error;
     }
@@ -218,7 +217,7 @@ exports.recordBatchMetrics = (0, v2_1.onCall)({
  * Scheduled function to collect and report system metrics
  * Runs every 5 minutes following official scheduling patterns
  */
-exports.collectSystemMetrics = (0, v2_1.onSchedule)({
+exports.collectSystemMetrics = (0, scheduler_1.onSchedule)({
     schedule: 'every 5 minutes',
     region: 'us-central1',
     memory: '1GiB',
@@ -380,13 +379,12 @@ exports.collectSystemMetrics = (0, v2_1.onSchedule)({
 /**
  * Get metrics data for dashboard
  */
-exports.getMetricsData = (0, v2_1.onCall)({
+exports.getMetricsData = (0, https_1.onCall)({
     region: 'us-central1',
     memory: '1GiB',
     timeoutSeconds: 60,
 }, async (request) => {
-    var _a, _b;
-    if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+    if (!request.auth?.uid) {
         throw new Error('Authentication required');
     }
     try {
@@ -412,19 +410,13 @@ exports.getMetricsData = (0, v2_1.onCall)({
                     view: 'FULL'
                 };
                 const [timeSeries] = await monitoringClient.listTimeSeries(listTimeSeriesRequest);
-                metricsData[metricType] = timeSeries.map(ts => {
-                    var _a, _b;
-                    return ({
-                        labels: ((_a = ts.metric) === null || _a === void 0 ? void 0 : _a.labels) || {},
-                        points: ((_b = ts.points) === null || _b === void 0 ? void 0 : _b.map(point => {
-                            var _a, _b, _c;
-                            return ({
-                                timestamp: (_a = point.interval) === null || _a === void 0 ? void 0 : _a.endTime,
-                                value: ((_b = point.value) === null || _b === void 0 ? void 0 : _b.doubleValue) || ((_c = point.value) === null || _c === void 0 ? void 0 : _c.int64Value) || 0
-                            });
-                        })) || []
-                    });
-                });
+                metricsData[metricType] = timeSeries.map(ts => ({
+                    labels: ts.metric?.labels || {},
+                    points: ts.points?.map(point => ({
+                        timestamp: point.interval?.endTime,
+                        value: point.value?.doubleValue || point.value?.int64Value || 0
+                    })) || []
+                }));
             }
             catch (metricError) {
                 firebase_functions_1.logger.warn(`Failed to fetch metric ${metricType}`, {
@@ -444,7 +436,7 @@ exports.getMetricsData = (0, v2_1.onCall)({
     catch (error) {
         firebase_functions_1.logger.error('Failed to get metrics data', {
             error: error instanceof Error ? error.message : 'Unknown error',
-            userId: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.uid
+            userId: request.auth?.uid
         });
         throw error;
     }
@@ -452,13 +444,12 @@ exports.getMetricsData = (0, v2_1.onCall)({
 /**
  * Create alerting policy for critical metrics
  */
-exports.createAlertingPolicy = (0, v2_1.onCall)({
+exports.createAlertingPolicy = (0, https_1.onCall)({
     region: 'us-central1',
     memory: '1GiB',
     timeoutSeconds: 60,
 }, async (request) => {
-    var _a, _b;
-    if (!((_a = request.auth) === null || _a === void 0 ? void 0 : _a.uid)) {
+    if (!request.auth?.uid) {
         throw new Error('Authentication required');
     }
     try {
@@ -520,7 +511,7 @@ exports.createAlertingPolicy = (0, v2_1.onCall)({
     catch (error) {
         firebase_functions_1.logger.error('Failed to create alert policy', {
             error: error instanceof Error ? error.message : 'Unknown error',
-            userId: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.uid
+            userId: request.auth?.uid
         });
         throw error;
     }

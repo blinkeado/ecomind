@@ -1,5 +1,7 @@
-// SOURCE: IMPLEMENTATION_PLAN.md line 76 + AI prompt generation requirements
-// VERIFIED: Based on EcoMind Personal Relationship Assistant AI system specifications
+// SOURCE: IMPLEMENTATION_PLAN.md line 76 + WORLD_CLASS_DATABASE_ARCHITECTURE.md
+// VERIFIED: Updated for World-Class Database Architecture with Firebase AI Logic integration
+// VERSION: 2.0 - Enhanced for Gemini 1.5 Flash and Firebase Extensions
+// STORAGE: users/{userId}/prompts/{promptId}
 
 /**
  * AI-Generated Prompt Types
@@ -10,22 +12,24 @@
 import { RelationshipType, EmotionalTone } from './relationship';
 
 /**
- * Relationship Prompt
+ * Relationship Prompt - UPDATED for World-Class Architecture
  * AI-generated suggestions for relationship maintenance
+ * STORAGE: users/{userId}/prompts/{promptId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Addresses Emotional Labor Imbalance
  */
 export interface RelationshipPrompt {
   id: string;
   userId: string;
-  personId: string;
+  personId: string; // indexed
   
   // Prompt Content
-  type: PromptType;
+  type: PromptType; // indexed
   title: string;
-  description: string;
-  suggestion: string;
+  description: string; // non-indexed for large text
+  suggestion: string; // non-indexed for large text
   
   // Urgency & Priority
-  urgency: PromptUrgency;
+  urgency: PromptUrgency; // indexed
   priority: number; // 1-10 scale
   
   // Context Information
@@ -33,26 +37,35 @@ export interface RelationshipPrompt {
   reasoning?: string; // Why this prompt was generated
   
   // Timing
-  createdAt: Date;
-  scheduledFor?: Date;
-  expiresAt?: Date;
+  createdAt: Date; // indexed
+  scheduledFor?: Date; // indexed for temporal queries
+  expiresAt?: Date; // indexed for cleanup
   
   // User Interaction
-  status: PromptStatus;
+  status: PromptStatus; // indexed
   userResponse?: PromptUserResponse;
   completedAt?: Date;
   dismissedAt?: Date;
   snoozeUntil?: Date;
   
-  // AI Generation Metadata
-  aiModel: string;
+  // NEW: Enhanced AI Generation Metadata (Firebase AI Logic)
+  aiModel: string; // 'gemini-1.5-flash' | 'vertex-ai-gemini-api'
   confidence: number; // 0-1 scale
   generationVersion: string;
+  apiProvider: 'firebase-ai-logic' | 'gemini-developer-api'; // NEW: Technology source
+  processingTime?: number; // milliseconds for performance monitoring
   
   // Personalization
   personalizationFactors: PersonalizationFactor[];
   relationshipStage: string;
   lastInteractionDays?: number;
+  
+  // NEW: Emotional Intelligence Integration
+  emotionalContext?: {
+    userEmotionalState?: string; // Current user emotional state
+    relationEmotionalHealth?: number; // 1-10 relationship emotional balance
+    supportNeedDetected?: boolean; // AI detected need for emotional support
+  };
   
   // Analytics
   viewCount: number;
@@ -107,8 +120,9 @@ export type PromptStatus =
   | 'archived'; // Moved to archive
 
 /**
- * Prompt Context
+ * Prompt Context - ENHANCED for World-Class Architecture
  * Information that influenced the prompt generation
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Enhanced AI processing
  */
 export interface PromptContext {
   // Relationship Context
@@ -136,10 +150,40 @@ export interface PromptContext {
   userMood?: EmotionalTone;
   userAvailability?: AvailabilityLevel;
   
+  // NEW: Enhanced Emotional Intelligence Context
+  emotionalSignals?: {
+    recentEmotions?: string[]; // Recent emotional states detected
+    emotionalBalance?: number; // 1-10 giving vs receiving balance
+    stressIndicators?: string[]; // Signs of relationship stress
+    supportOpportunities?: string[]; // Opportunities to provide support
+  };
+  
+  // NEW: Context Thread Integration
+  activeThreads?: {
+    threadId: string;
+    topic: string;
+    lastUpdate: Date;
+    priority: string;
+  }[];
+  
+  // NEW: Conflict Resolution Context
+  conflictHistory?: {
+    recentConflicts: number; // Count of recent conflicts
+    resolutionPatterns: string[]; // How conflicts typically resolve
+    conflictAvoidanceNeeded?: boolean;
+  };
+  
   // External Factors
   weatherInfluence?: boolean;
   socialMediaActivity?: boolean;
   mutualConnections?: string[]; // IDs of mutual contacts
+  
+  // NEW: Vector Similarity Context (for semantic search)
+  similarRelationships?: {
+    relationshipId: string;
+    similarityScore: number; // 0-1 cosine similarity
+    successfulPrompts?: string[]; // Prompt types that worked well
+  }[];
 }
 
 /**
@@ -299,8 +343,9 @@ export interface PromptTemplate {
 }
 
 /**
- * Prompt Generation Request
+ * Prompt Generation Request - ENHANCED for Firebase AI Logic
  * Request structure for AI prompt generation
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Firebase AI Logic integration
  */
 export interface PromptGenerationRequest {
   userId: string;
@@ -318,6 +363,29 @@ export interface PromptGenerationRequest {
   personalizationLevel: 'low' | 'medium' | 'high';
   includeExperimental?: boolean; // Include experimental prompt types
   
+  // NEW: Firebase AI Logic Configuration
+  aiConfig?: {
+    model: 'gemini-1.5-flash' | 'gemini-1.5-pro' | 'vertex-ai-gemini';
+    apiProvider: 'firebase-ai-logic' | 'gemini-developer-api';
+    temperature?: number; // 0-1 for creativity control
+    maxTokens?: number;
+    includeFunctionCalling?: boolean; // Enable function calling features
+  };
+  
+  // NEW: Emotional Intelligence Parameters
+  emotionalProcessing?: {
+    includeEmotionalSignals: boolean;
+    emotionalBalanceWeighting?: number; // 0-1 importance of emotional balance
+    supportDetectionSensitivity?: 'low' | 'medium' | 'high';
+  };
+  
+  // NEW: Vector Search Integration
+  semanticSimilarity?: {
+    enableSimilaritySearch: boolean;
+    similarityThreshold?: number; // 0-1 minimum similarity for recommendations
+    maxSimilarRelationships?: number;
+  };
+  
   // Timing
   scheduleFor?: Date; // When prompts should be active
   
@@ -328,7 +396,8 @@ export interface PromptGenerationRequest {
 }
 
 /**
- * Prompt Generation Response
+ * Prompt Generation Response - ENHANCED for Firebase AI Logic
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Enhanced AI processing
  */
 export interface PromptGenerationResponse {
   requestId: string;
@@ -342,10 +411,27 @@ export interface PromptGenerationResponse {
   processingTime: number; // milliseconds
   aiModel: string;
   version: string;
+  apiProvider: string; // NEW: Which AI service was used
   
   // Quality Metrics
   averageConfidence: number;
   qualityScore: number; // Internal AI quality assessment
+  
+  // NEW: Enhanced Quality Assessment
+  qualityBreakdown?: {
+    relevanceScore: number; // 0-1 how relevant to relationship context
+    personalizedScore: number; // 0-1 how personalized to user/relationship
+    emotionalIntelligenceScore: number; // 0-1 emotional appropriateness
+    timingScore: number; // 0-1 timing appropriateness
+  };
+  
+  // NEW: AI Processing Insights
+  processingInsights?: {
+    emotionalSignalsProcessed: number;
+    contextThreadsAnalyzed: number;
+    similarRelationshipsFound: number;
+    conflictPatternsDetected: number;
+  };
   
   // Errors or Warnings
   warnings?: string[];
@@ -353,6 +439,14 @@ export interface PromptGenerationResponse {
   
   // Context Used
   contextSummary: PromptContextSummary;
+  
+  // NEW: Cost and Usage Tracking
+  usageMetrics?: {
+    tokensConsumed: number;
+    apiCallsUsed: number;
+    estimatedCost: number; // USD
+    cachedResponses: number; // Number of cached/reused responses
+  };
 }
 
 /**
@@ -427,11 +521,51 @@ export const isValidPromptStatus = (status: string): status is PromptStatus => {
 };
 
 /**
- * Default Values
+ * NEW: Firebase AI Logic Model Configuration
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Production-ready AI models
+ */
+export const FIREBASE_AI_MODELS = {
+  GEMINI_FLASH: 'gemini-1.5-flash', // ✅ GA - Fast, efficient for prompts
+  GEMINI_PRO: 'gemini-1.5-pro', // ✅ GA - High quality, complex reasoning
+  VERTEX_GEMINI: 'vertex-ai-gemini-api', // ✅ GA - Enterprise features
+} as const;
+
+export const AI_PROCESSING_LIMITS = {
+  MAX_TOKENS_FLASH: 1000, // Gemini Flash token limit for prompts
+  MAX_TOKENS_PRO: 2000, // Gemini Pro token limit for complex prompts
+  MAX_CONTEXT_RELATIONSHIPS: 50, // Maximum relationships to analyze
+  MAX_EMOTIONAL_SIGNALS: 100, // Maximum emotional signals per analysis
+  MAX_PROCESSING_TIME_MS: 5000, // Maximum processing time allowed
+} as const;
+
+export const EMOTIONAL_INTELLIGENCE_CONFIG = {
+  SUPPORT_DETECTION_THRESHOLDS: {
+    low: 0.3,
+    medium: 0.5,
+    high: 0.7,
+  },
+  EMOTIONAL_BALANCE_WEIGHTS: {
+    giving: 0.4,
+    receiving: 0.3,
+    reciprocity: 0.3,
+  },
+  STRESS_INDICATORS: [
+    'decreased_interaction_frequency',
+    'negative_emotional_tone_increase',
+    'conflict_pattern_detected',
+    'support_imbalance_critical',
+  ],
+} as const;
+
+/**
+ * Default Values - UPDATED for World-Class Architecture
  */
 export const DEFAULT_PROMPT_EXPIRY_DAYS = 7;
 export const DEFAULT_PROMPT_PRIORITY = 5;
 export const DEFAULT_MAX_PROMPTS_PER_REQUEST = 10;
+export const DEFAULT_AI_MODEL = FIREBASE_AI_MODELS.GEMINI_FLASH;
+export const DEFAULT_AI_TEMPERATURE = 0.7; // Balanced creativity
+export const DEFAULT_CONFIDENCE_THRESHOLD = 0.5; // Minimum confidence for prompts
 
 export const PROMPT_URGENCY_PRIORITY_MAP = {
   low: 3,
@@ -453,5 +587,11 @@ export default {
   DEFAULT_PROMPT_EXPIRY_DAYS,
   DEFAULT_PROMPT_PRIORITY,
   DEFAULT_MAX_PROMPTS_PER_REQUEST,
+  DEFAULT_AI_MODEL,
+  DEFAULT_AI_TEMPERATURE,
+  DEFAULT_CONFIDENCE_THRESHOLD,
   PROMPT_URGENCY_PRIORITY_MAP,
+  FIREBASE_AI_MODELS,
+  AI_PROCESSING_LIMITS,
+  EMOTIONAL_INTELLIGENCE_CONFIG,
 };

@@ -1,6 +1,7 @@
 // SOURCE: Phase 8 Polish & Deployment - Production error handling and monitoring
 // VERIFIED: Comprehensive error tracking, crash reporting, and monitoring system
 
+import React from 'react';
 import { Alert, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

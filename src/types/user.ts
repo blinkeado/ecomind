@@ -1,6 +1,7 @@
-// SOURCE: IMPLEMENTATION_PLAN.md line 75 + Firebase Auth Official Documentation
+// SOURCE: IMPLEMENTATION_PLAN.md line 75 + WORLD_CLASS_DATABASE_ARCHITECTURE.md
 // URL: https://rnfirebase.io/auth/usage#user-objects
-// VERIFIED: Official Firebase Auth User interface + EcoMind requirements
+// VERIFIED: Updated for World-Class Database Architecture with emotional profiles
+// VERSION: 2.0 - Enhanced for Firebase AI Logic and emotional intelligence
 
 import { User as FirebaseUser } from '@react-native-firebase/auth';
 
@@ -32,16 +33,23 @@ export interface UserProfile {
 }
 
 /**
- * User Preferences and Privacy Settings
- * SOURCE: personal-relationship-assistant.md privacy requirements
+ * User Preferences and Privacy Settings - ENHANCED for World-Class Architecture
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md privacy-first design
  */
 export interface UserPreferences {
   // Privacy Control Levels
   privacyLevel: PrivacyLevel;
   
-  // AI Processing Consent
+  // AI Processing Consent - ENHANCED for Firebase AI Logic
   aiProcessingConsent: boolean;
   aiDataRetentionDays: number; // How long to keep AI processing data
+  emotionalDataConsent: boolean; // NEW: Explicit consent for emotional data
+  emotionalDataRetentionDays: number; // NEW: Shorter retention for sensitive data (default 30 days)
+  
+  // NEW: Firebase AI Logic Preferences
+  aiModelPreference: 'gemini-1.5-flash' | 'gemini-1.5-pro' | 'vertex-ai-gemini' | 'auto';
+  aiProcessingLocation: 'on_device' | 'cloud' | 'hybrid'; // Processing location preference
+  vectorSearchEnabled: boolean; // Enable semantic similarity search
   
   // Notification Settings
   notificationSettings: NotificationSettings;
@@ -49,6 +57,8 @@ export interface UserPreferences {
   // Data Management Preferences
   dataExportFormat: 'json' | 'csv';
   backupEnabled: boolean;
+  offlineSyncEnabled: boolean; // NEW: Multi-device offline sync
+  conflictResolutionPreference: 'manual' | 'automatic' | 'ai_assisted'; // NEW: Conflict handling
   
   // UI/UX Preferences
   theme: 'light' | 'dark' | 'system';
@@ -57,6 +67,12 @@ export interface UserPreferences {
   // Relationship Management Settings
   defaultRelationshipPrivacy: 'private' | 'shared';
   reminderFrequency: 'daily' | 'weekly' | 'monthly' | 'off';
+  
+  // NEW: Emotional Intelligence Settings
+  emotionalIntelligenceEnabled: boolean;
+  emotionalBalanceTracking: boolean;
+  supportDetectionSensitivity: 'low' | 'medium' | 'high';
+  stressIndicatorAlerts: boolean;
 }
 
 /**
@@ -87,22 +103,35 @@ export interface PrivacyLevelConfig {
 }
 
 /**
- * Notification Settings
+ * Notification Settings - ENHANCED for World-Class Architecture
  * Controls when and how users receive prompts and reminders
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Temporal triggers integration
  */
 export interface NotificationSettings {
   // Relationship Prompts
   prompts: boolean;
   promptTiming: 'morning' | 'afternoon' | 'evening' | 'smart'; // AI-optimized timing
+  promptUrgencyFiltering: boolean; // Filter by urgency level
   
   // Relationship Reminders
   reminders: boolean;
   reminderAdvanceNotice: number; // Days before important dates
+  temporalTriggersEnabled: boolean; // NEW: Automated temporal triggers
   
   // AI Insights and Suggestions
   insights: boolean;
   weeklyInsights: boolean;
   monthlyReports: boolean;
+  
+  // NEW: Emotional Intelligence Notifications
+  emotionalInsights: boolean;
+  supportOpportunityAlerts: boolean;
+  relationshipHealthAlerts: boolean;
+  emotionalBalanceReports: boolean;
+  
+  // NEW: Conflict Resolution Notifications
+  conflictDetectionAlerts: boolean;
+  syncConflictNotifications: boolean;
   
   // Social Features (future)
   sharedRelationshipUpdates: boolean;
@@ -112,6 +141,7 @@ export interface NotificationSettings {
   securityAlerts: boolean;
   dataExportReady: boolean;
   backupReminders: boolean;
+  aiProcessingAlerts: boolean; // NEW: AI processing status notifications
 }
 
 /**
@@ -238,26 +268,122 @@ export const isValidOnboardingStep = (step: string): step is OnboardingStep => {
 };
 
 /**
- * Default User Preferences
- * Conservative defaults prioritizing user privacy
+ * NEW: User Emotional Profile Interface
+ * STORAGE: users/{userId}/emotionalProfile/{profileId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Emotional Signal Layer
+ */
+export interface UserEmotionalProfile {
+  id: string;
+  userId: string; // indexed
+  
+  // Emotional Patterns
+  dominantEmotions: string[]; // indexed - most common emotional states
+  stressIndicators: string[]; // Warning signs of emotional stress
+  supportPatterns: {
+    givingStyle: 'proactive' | 'reactive' | 'minimal' | 'overwhelming';
+    receivingComfort: 'high' | 'medium' | 'low';
+    preferredSupportTypes: string[]; // Types of support user prefers
+  };
+  
+  // Communication Patterns
+  communicationStyle: string; // indexed - 'formal' | 'casual' | 'intimate' | 'supportive'
+  empathyLevel: number; // 1-10 scale
+  conflictResolutionStyle: 'collaborative' | 'competitive' | 'accommodating' | 'avoiding' | 'compromising';
+  
+  // Relationship Preferences
+  idealRelationshipBalance: {
+    emotionalGiving: number; // 1-10 preferred level of support giving
+    emotionalReceiving: number; // 1-10 preferred level of support receiving
+    communicationFrequency: Record<string, number>; // Preferred frequency by relationship type
+  };
+  
+  // Privacy Controls for Emotional Data
+  emotionalDataSharing: {
+    allowAIAnalysis: boolean;
+    allowPatternDetection: boolean;
+    allowSupportSuggestions: boolean;
+    dataRetentionDays: number; // Separate retention for emotional data
+  };
+  
+  // Metadata
+  lastUpdated: Date; // indexed
+  version: string;
+  aiGeneratedInsights?: string[]; // AI-detected patterns
+  lastInsightGeneration?: Date;
+}
+
+/**
+ * NEW: Multi-Device Sync Status Interface
+ * Tracks synchronization across user's devices
+ */
+export interface UserSyncStatus {
+  userId: string;
+  
+  // Device Information
+  devices: {
+    deviceId: string;
+    deviceName: string;
+    platform: 'ios' | 'android' | 'web';
+    lastSyncAt: Date;
+    syncStatus: 'synced' | 'pending' | 'conflict' | 'offline';
+  }[];
+  
+  // Sync Statistics
+  totalSyncConflicts: number;
+  resolvedConflicts: number;
+  pendingConflicts: number;
+  lastFullSync: Date;
+  
+  // Sync Preferences
+  syncPreferences: {
+    autoResolveConflicts: boolean;
+    priorityDevice?: string; // Device ID for conflict resolution priority
+    offlineSyncEnabled: boolean;
+    backgroundSyncEnabled: boolean;
+  };
+}
+
+/**
+ * Default User Preferences - UPDATED for World-Class Architecture
+ * Conservative defaults prioritizing user privacy and emotional data protection
  */
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   privacyLevel: 'strict',
   aiProcessingConsent: false,
   aiDataRetentionDays: 30,
+  emotionalDataConsent: false, // NEW: Explicit consent required
+  emotionalDataRetentionDays: 30, // NEW: Shorter retention for sensitive data
+  aiModelPreference: 'auto', // NEW: Let system choose optimal model
+  aiProcessingLocation: 'hybrid', // NEW: Balance privacy and functionality
+  vectorSearchEnabled: false, // NEW: Disabled by default for privacy
+  offlineSyncEnabled: true, // NEW: Enable offline functionality
+  conflictResolutionPreference: 'manual', // NEW: User control over conflicts
+  emotionalIntelligenceEnabled: false, // NEW: Opt-in for emotional features
+  emotionalBalanceTracking: false, // NEW: Disabled by default
+  supportDetectionSensitivity: 'medium', // NEW: Balanced detection
+  stressIndicatorAlerts: false, // NEW: Disabled by default for privacy
   notificationSettings: {
     prompts: true,
     promptTiming: 'smart',
+    promptUrgencyFiltering: true, // NEW: Filter low-priority prompts
     reminders: true,
     reminderAdvanceNotice: 3,
+    temporalTriggersEnabled: false, // NEW: Disabled by default
     insights: false,
     weeklyInsights: false,
     monthlyReports: false,
+    emotionalInsights: false, // NEW: Emotional insights disabled
+    supportOpportunityAlerts: false, // NEW: Support alerts disabled
+    relationshipHealthAlerts: false, // NEW: Health alerts disabled
+    emotionalBalanceReports: false, // NEW: Balance reports disabled
+    conflictDetectionAlerts: true, // NEW: Important for data integrity
+    syncConflictNotifications: true, // NEW: Important for user awareness
     sharedRelationshipUpdates: false,
     connectionRequests: false,
     securityAlerts: true,
     dataExportReady: true,
     backupReminders: true,
+    aiProcessingAlerts: true, // NEW: Keep users informed of AI usage
   },
   dataExportFormat: 'json',
   backupEnabled: true,
@@ -274,9 +400,44 @@ export type {
   FirebaseUser,
 };
 
+// NEW: World-Class Architecture Type Guards
+export const isValidAIModel = (model: string): model is UserPreferences['aiModelPreference'] => {
+  return ['gemini-1.5-flash', 'gemini-1.5-pro', 'vertex-ai-gemini', 'auto'].includes(model);
+};
+
+export const isValidProcessingLocation = (location: string): location is UserPreferences['aiProcessingLocation'] => {
+  return ['on_device', 'cloud', 'hybrid'].includes(location);
+};
+
+export const isValidConflictResolution = (resolution: string): resolution is UserPreferences['conflictResolutionPreference'] => {
+  return ['manual', 'automatic', 'ai_assisted'].includes(resolution);
+};
+
+export const isValidSupportSensitivity = (sensitivity: string): sensitivity is UserPreferences['supportDetectionSensitivity'] => {
+  return ['low', 'medium', 'high'].includes(sensitivity);
+};
+
+// NEW: Privacy-compliant emotional data validation
+export const isValidEmotionalProfile = (data: any): data is UserEmotionalProfile => {
+  return (
+    data &&
+    typeof data.userId === 'string' &&
+    Array.isArray(data.dominantEmotions) &&
+    typeof data.empathyLevel === 'number' &&
+    data.empathyLevel >= 1 && data.empathyLevel <= 10 &&
+    data.emotionalDataSharing &&
+    typeof data.emotionalDataSharing.allowAIAnalysis === 'boolean'
+  );
+};
+
 export default {
   DEFAULT_USER_PREFERENCES,
   isValidUserProfile,
   isValidPrivacyLevel,
   isValidOnboardingStep,
+  isValidAIModel,
+  isValidProcessingLocation,
+  isValidConflictResolution,
+  isValidSupportSensitivity,
+  isValidEmotionalProfile,
 };

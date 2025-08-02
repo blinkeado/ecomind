@@ -1,23 +1,26 @@
-// SOURCE: IMPLEMENTATION_PLAN.md line 74 + 05-knowledge-graph.md relationship model
-// VERIFIED: Data models based on EcoMind Personal Relationship Assistant specifications
+// SOURCE: IMPLEMENTATION_PLAN.md line 74 + WORLD_CLASS_DATABASE_ARCHITECTURE.md
+// VERIFIED: Updated for World-Class Database Architecture with Firebase subcollections
+// MIGRATION: From nested arrays to Firestore subcollections for unlimited scaling
+// VERSION: 2.0 - Updated for Phase 1 implementation with emotional signals and AI integration
 
 import { Timestamp } from '@react-native-firebase/firestore';
 
 /**
- * Core Person Document Interface
+ * Core Person Document Interface - UPDATED for World-Class Architecture
  * Represents an individual in the user's relationship network
- * SOURCE: 05-knowledge-graph.md PersonDocument specification
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Firestore subcollections structure
+ * MIGRATION: From nested arrays to subcollections for unlimited scaling
  */
 export interface PersonDocument {
   // Core Identity
   id: string;
-  displayName: string;
-  nicknames: string[];
+  displayName: string; // indexed, searchable
+  nicknames: string[]; // indexed
   
   // Relationship Context
-  roles: RelationshipRole[];
-  relationshipType: RelationshipType;
-  relationshipIntensity: number; // 1-10 scale
+  roles: RelationshipRole[]; // indexed
+  relationshipType: RelationshipType; // indexed
+  relationshipIntensity: number; // 1-10 scale, indexed
   
   // Contact Information
   contactMethods: ContactMethod[];
@@ -28,10 +31,14 @@ export interface PersonDocument {
   demographics?: Demographics;
   
   // Relationship Health & Analytics
-  relationshipHealth: number; // 1-10 calculated score
+  relationshipHealth: number; // 1-10 calculated score, indexed
   communicationFrequency: number; // Average days between contacts
-  lastContact?: Date;
+  lastContact?: Date; // indexed
   nextContactSuggestion?: Date;
+  
+  // Search & Tagging - NEW for World-Class Architecture
+  tags: string[]; // indexed
+  searchKeywords: string[]; // full-text indexed for search optimization
   
   // Metadata
   createdAt: Date;
@@ -44,7 +51,13 @@ export interface PersonDocument {
   
   // System Fields
   version: number; // For data migration compatibility
-  tags: string[]; // User-defined tags
+  
+  // SUBCOLLECTION REFERENCES - Data now stored in subcollections for unlimited scaling
+  // interactions: InteractionRecord[] -> users/{userId}/relationships/{id}/interactions/{interactionId}
+  // lifeEvents: LifeEvent[] -> users/{userId}/relationships/{id}/lifeEvents/{eventId}
+  // emotionalSignals: EmotionalSignal[] -> users/{userId}/relationships/{id}/emotionalSignals/{signalId}
+  // attachments: AttachmentReference[] -> users/{userId}/relationships/{id}/attachments/{attachmentId}
+  // contextThreads: ContextThread[] -> users/{userId}/relationships/{id}/contextThreads/{threadId}
 }
 
 /**
@@ -177,8 +190,10 @@ export type AgeRange =
   | 'unknown';
 
 /**
- * Interaction Record
+ * Interaction Record - UPDATED for World-Class Architecture
  * Tracks communications and meetings with a person
+ * STORAGE: users/{userId}/relationships/{relationshipId}/interactions/{interactionId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md subcollection pattern
  */
 export interface InteractionRecord {
   id: string;
@@ -186,30 +201,33 @@ export interface InteractionRecord {
   userId: string;
   
   // Interaction Details
-  type: InteractionType;
-  timestamp: Date;
+  type: InteractionType; // indexed
+  timestamp: Date; // indexed for temporal queries
   duration?: number; // Minutes
   location?: string;
   
   // Content & Context
-  notes?: string;
+  notes?: string; // non-indexed for large text storage
   topics?: string[];
-  emotionalTone: EmotionalTone;
-  interactionQuality: number; // 1-10 scale
+  emotionalTone: EmotionalTone; // indexed
+  interactionQuality: number; // 1-10 scale, indexed
   
   // Communication Method
-  contactMethod?: ContactMethodType;
+  contactMethod?: ContactMethodType; // indexed
   initiatedBy: 'user' | 'other' | 'mutual';
+  
+  // NEW: AI Processing Integration
+  aiExtracted: boolean; // Whether AI processing was used
+  aiExtractedContext?: AIExtractedContext;
+  needsReview?: boolean; // If AI extraction needs user confirmation
   
   // Metadata
   isPrivate: boolean;
-  attachments?: AttachmentReference[];
   createdAt: Date;
   lastUpdated: Date;
   
-  // AI Processing
-  aiExtractedContext?: AIExtractedContext;
-  needsReview?: boolean; // If AI extraction needs user confirmation
+  // SUBCOLLECTION REFERENCES - Attachments moved to subcollection
+  // attachments: AttachmentReference[] -> users/{userId}/relationships/{relationshipId}/attachments/{attachmentId}
 }
 
 export type InteractionType = 
@@ -239,8 +257,74 @@ export type EmotionalTone =
   | 'unknown';
 
 /**
- * AI Extracted Context
+ * NEW: Emotional Signal Interface - World-Class Architecture Addition
+ * Based on Emotional Schema Theory and Plutchik's Wheel
+ * STORAGE: users/{userId}/relationships/{relationshipId}/emotionalSignals/{signalId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md Emotional Signal Layer
+ */
+export interface EmotionalSignal {
+  id: string;
+  relationshipId: string;
+  userId: string;
+  
+  // Core Emotional Dimensions (Plutchik's Wheel)
+  emotionType: 'joy' | 'sadness' | 'anger' | 'fear' | 'surprise' | 'disgust' | 'trust' | 'anticipation'; // indexed
+  intensity: number; // 1-10 scale, indexed
+  
+  // Relationship Context
+  relationalContext: 'support' | 'conflict' | 'celebration' | 'concern' | 'gratitude' | 'nostalgia';
+  
+  // Temporal Context
+  timestamp: Date; // indexed
+  duration?: number; // How long the emotion lasted (minutes)
+  
+  // Source Detection
+  detectionMethod: 'user_reported' | 'ai_extracted' | 'behavioral_inferred';
+  confidence: number; // 0-1 for AI-detected emotions
+  
+  // Context Information
+  context?: string; // non-indexed descriptive text
+  triggerEvent?: string;
+  relatedInteractionId?: string;
+  
+  // Metadata
+  createdAt: Date;
+  isPrivate: boolean;
+}
+
+/**
+ * NEW: Context Thread Interface - Conversation Continuity
+ * STORAGE: users/{userId}/relationships/{relationshipId}/contextThreads/{threadId} 
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Addresses Context Switching Overload
+ */
+export interface ContextThread {
+  id: string;
+  relationshipId: string;
+  userId: string;
+  
+  // Thread Information
+  topic: string; // indexed
+  lastUpdate: Date; // indexed
+  participants: string[]; // indexed
+  platform: string; // indexed - 'iMessage' | 'WhatsApp' | 'email' | 'in-person'
+  threadType: string; // indexed - 'ongoing_conversation' | 'project' | 'life_event' | 'support'
+  priority: string; // indexed - 'low' | 'medium' | 'high'
+  isActive: boolean; // indexed
+  
+  // Content Summary
+  summary?: string; // non-indexed
+  keyPoints?: string[]; // Important discussion points
+  nextSteps?: string[]; // Agreed upon follow-up actions
+  
+  // Metadata
+  createdAt: Date;
+  lastUpdated: Date;
+}
+
+/**
+ * AI Extracted Context - ENHANCED for Firebase AI Logic integration
  * Information extracted from interaction notes by AI
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Firebase AI Logic (Vertex AI)
  */
 export interface AIExtractedContext {
   extractedAt: Date;
@@ -263,42 +347,66 @@ export interface AIExtractedContext {
   // Follow-up Suggestions
   followUpSuggestions?: string[];
   
-  // Metadata
-  model: string; // AI model used
+  // NEW: Firebase AI Logic Integration (2025)
+  model: string; // AI model used: 'gemini-1.5-flash' | 'vertex-ai-gemini-api'
   processingVersion: string;
+  apiProvider: 'firebase-ai-logic' | 'gemini-developer-api'; // Technology source
+  processingTime?: number; // milliseconds for performance monitoring
+  
+  // NEW: Dual Storage Pattern - Raw + Structured
+  rawTranscript?: string; // non-indexed, original text
+  structuredData?: Record<string, any>; // AI-processed structured information
+  
+  // NEW: Vector Embeddings for Semantic Search
+  contextEmbedding?: number[]; // 768-dim vector for semantic similarity
+  embeddingMetadata?: {
+    model: 'vertex-ai-text-embeddings' | 'gemini-text-embedding';
+    generatedAt: Date;
+    algorithm?: 'tree-ah'; // Approximate Hamming for KNN
+    distanceMeasure?: 'COSINE';
+  };
 }
 
 /**
- * Life Event
+ * Life Event - UPDATED for World-Class Architecture
  * Significant events in a person's life
+ * STORAGE: users/{userId}/relationships/{relationshipId}/lifeEvents/{eventId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Addresses Forgotten Moment Problem
  */
 export interface LifeEvent {
   id: string;
   personId: string;
+  userId: string;
   
   // Event Details
-  type: LifeEventType;
-  title: string;
-  description?: string;
-  date: Date;
+  type: LifeEventType; // indexed
+  title: string; // indexed
+  description?: string; // non-indexed for large text
+  date: Date; // indexed for temporal queries
   isApproximate: boolean;
   
   // Significance
-  importance: number; // 1-10 scale
-  category: EventCategory;
+  importance: number; // 1-10 scale, indexed
+  category: EventCategory; // indexed
   
   // Source Information
   source: 'user_input' | 'ai_extracted' | 'social_media' | 'calendar';
   sourceReference?: string;
   
+  // Reminders
+  reminderDate?: Date; // indexed for temporal triggers
+  reminderSent: boolean;
+  isRecurring: boolean;
+  recurrencePattern?: RecurrencePattern;
+  
+  // NEW: Emotional Significance Tracking
+  emotionalSignificance?: number; // 1-10 scale for importance to relationship
+  relatedEmotionalSignals?: string[]; // IDs of related emotional signals
+  
   // Metadata
   createdAt: Date;
   lastUpdated: Date;
   isPrivate: boolean;
-  
-  // Reminders
-  reminderDate?: Date;
-  reminderSent: boolean;
 }
 
 export type LifeEventType = 
@@ -385,18 +493,32 @@ export interface RecurrencePattern {
 }
 
 /**
- * Attachment Reference
+ * Attachment Reference - UPDATED for World-Class Architecture
  * References to files, photos, or other media
+ * STORAGE: users/{userId}/relationships/{relationshipId}/attachments/{attachmentId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md subcollection pattern
  */
 export interface AttachmentReference {
   id: string;
-  type: AttachmentType;
+  relationshipId: string;
+  userId: string;
+  
+  // File Information
+  type: AttachmentType; // indexed
   filename: string;
-  url: string;
-  size: number;
+  storageUrl: string; // Firebase Storage URL
+  size: number; // File size in bytes
   mimeType: string;
-  uploadedAt: Date;
+  uploadedAt: Date; // indexed
+  
+  // Context
   description?: string;
+  relatedEventId?: string; // Link to life event if applicable
+  relatedInteractionId?: string; // Link to interaction if applicable
+  
+  // Metadata
+  isPrivate: boolean;
+  tags?: string[]; // User-defined tags for organization
 }
 
 export type AttachmentType = 
@@ -408,12 +530,28 @@ export type AttachmentType =
   | 'other';
 
 /**
- * Relationship Statistics
+ * Relationship Health Analytics - UPDATED for World-Class Architecture
  * Computed analytics about the relationship
+ * STORAGE: users/{userId}/relationshipHealth/{healthId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Addresses Emotional Labor Imbalance
  */
-export interface RelationshipStats {
-  personId: string;
+export interface RelationshipHealthAnalytics {
+  id: string;
+  personId: string; // indexed
   userId: string;
+  calculatedAt: Date; // indexed
+  
+  // Overall Health Score
+  overallScore: number; // 1-10, indexed
+  trend: 'improving' | 'stable' | 'declining'; // indexed
+  
+  // Health Factors (NEW: Detailed breakdown)
+  factors: {
+    communicationFrequency: number; // 1-10 score
+    interactionQuality: number; // 1-10 score
+    emotionalBalance: number; // 1-10 score based on emotional signals
+    reciprocity: number; // 1-10 score for mutual investment
+  };
   
   // Communication Metrics
   totalInteractions: number;
@@ -426,10 +564,12 @@ export interface RelationshipStats {
   averageInteractionQuality: number;
   emotionalToneDistribution: Record<EmotionalTone, number>;
   
-  // Relationship Health
-  relationshipHealthScore: number;
-  healthTrend: 'improving' | 'stable' | 'declining';
-  lastHealthCalculation: Date;
+  // NEW: Emotional Intelligence Metrics
+  emotionalGiving: number; // Support provided to others (1-10)
+  emotionalReceiving: number; // Support received from others (1-10)
+  emotionalReciprocity: number; // Balance between giving/receiving (1-10)
+  stressResponsePattern: 'avoidant' | 'supportive' | 'demanding' | 'balanced';
+  supportOfferingStyle: 'proactive' | 'reactive' | 'minimal' | 'overwhelming';
   
   // Engagement Patterns
   preferredContactMethods: ContactMethodType[];
@@ -442,9 +582,11 @@ export interface RelationshipStats {
   relationshipDuration: number; // Days since first interaction
   relationshipStage: RelationshipStage;
   
-  // AI Insights
+  // AI Insights (Enhanced for Firebase AI Logic)
+  recommendations: string[]; // AI-generated improvement suggestions
   aiGeneratedInsights?: string[];
   lastInsightGeneration?: Date;
+  insightModel?: string; // AI model used for insights
   
   // Metadata
   lastCalculated: Date;
@@ -509,19 +651,132 @@ export const CONTACT_FREQUENCY_TARGETS = {
 } as const;
 
 /**
- * Utility Types
+ * NEW: Temporal Trigger Interface - Automated Relationship Maintenance
+ * STORAGE: users/{userId}/temporalTriggers/{triggerId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Addresses Forgotten Moment Problem
+ */
+export interface TemporalTrigger {
+  id: string;
+  userId: string;
+  
+  // Trigger Configuration
+  triggerType: string; // indexed - 'birthday' | 'anniversary' | 'follow_up' | 'check_in'
+  targetDate: Date; // indexed - when trigger should fire
+  personId?: string; // indexed - specific person (optional for general triggers)
+  eventId?: string; // related life event
+  isActive: boolean; // indexed
+  
+  // Recurrence
+  repeatInterval?: string; // 'yearly' | 'monthly' | 'weekly' | 'days:N'
+  lastFired?: Date;
+  nextFireDate?: Date; // indexed for efficient querying
+  
+  // Trigger Conditions
+  triggerConditions: {
+    daysBefore?: number; // Fire N days before target date
+    relationshipHealthThreshold?: number; // Only fire if health score below this
+    lastContactDays?: number; // Only fire if no contact for N days
+  };
+  
+  // Generated Content
+  generatedPromptId?: string; // Link to generated prompt when fired
+  
+  // Metadata
+  createdAt: Date;
+  lastUpdated: Date;
+}
+
+/**
+ * NEW: Conflict Resolution Interface - Multi-User Synchronization
+ * STORAGE: users/{userId}/conflictResolution/{conflictId}
+ * SOURCE: WORLD_CLASS_DATABASE_ARCHITECTURE.md - Multi-User Sync & Conflict Resolution
+ */
+export interface ConflictResolution {
+  id: string;
+  userId: string;
+  
+  // Conflict Information
+  documentPath: string; // indexed - path to conflicted document
+  conflictType: string; // indexed - 'interaction_merge' | 'relationship_health_conflict' | 'temporal_event_conflict'
+  detectedAt: Date; // indexed
+  
+  // Conflict Data
+  localVersion: Record<string, any>; // User's local version
+  serverVersion: Record<string, any>; // Server version
+  
+  // Resolution
+  resolution?: string; // 'keep_local' | 'use_server' | 'merge' | 'manual_resolve'
+  resolvedAt?: Date;
+  resolvedBy?: string; // 'system' | 'user' | 'ai'
+  
+  // Resolution Details
+  mergedResult?: Record<string, any>; // Final merged data if applicable
+  userChoice?: string; // User's resolution choice for future similar conflicts
+  
+  // Metadata
+  status: 'pending' | 'resolved' | 'ignored';
+}
+
+/**
+ * Utility Types - UPDATED for World-Class Architecture
  */
 export type PersonDocumentUpdate = Partial<Omit<PersonDocument, 'id' | 'createdAt' | 'createdBy'>>;
 export type InteractionRecordCreate = Omit<InteractionRecord, 'id' | 'createdAt' | 'lastUpdated'>;
-export type LifeEventCreate = Omit<LifeEvent, 'id' | 'createdAt' | 'lastUpdated'>;
+export type LifeEventCreate = Omit<LifeEvent, 'id' | 'createdAt' | 'lastUpdated' | 'userId'>;
+export type EmotionalSignalCreate = Omit<EmotionalSignal, 'id' | 'createdAt'>;
+export type ContextThreadCreate = Omit<ContextThread, 'id' | 'createdAt' | 'lastUpdated'>;
+export type AttachmentReferenceCreate = Omit<AttachmentReference, 'id' | 'uploadedAt'>;
+export type TemporalTriggerCreate = Omit<TemporalTrigger, 'id' | 'createdAt' | 'lastUpdated'>;
+
+// NEW: World-Class Architecture Type Guards
+export const isValidEmotionType = (emotion: string): emotion is EmotionalSignal['emotionType'] => {
+  return ['joy', 'sadness', 'anger', 'fear', 'surprise', 'disgust', 'trust', 'anticipation'].includes(emotion);
+};
+
+export const isValidRelationalContext = (context: string): context is EmotionalSignal['relationalContext'] => {
+  return ['support', 'conflict', 'celebration', 'concern', 'gratitude', 'nostalgia'].includes(context);
+};
+
+export const isValidDetectionMethod = (method: string): method is EmotionalSignal['detectionMethod'] => {
+  return ['user_reported', 'ai_extracted', 'behavioral_inferred'].includes(method);
+};
+
+// NEW: World-Class Architecture Constants
+export const EMOTIONAL_INTENSITY_SCALE = {
+  MIN: 1,
+  MAX: 10,
+  DEFAULT: 5,
+} as const;
+
+export const AI_CONFIDENCE_THRESHOLDS = {
+  HIGH: 0.8,
+  MEDIUM: 0.5,
+  LOW: 0.3,
+} as const;
+
+export const RELATIONSHIP_HEALTH_CALCULATION = {
+  WEIGHTS: {
+    communicationFrequency: 0.3,
+    interactionQuality: 0.25,
+    emotionalBalance: 0.25,
+    reciprocity: 0.2,
+  },
+  RECALCULATION_INTERVAL_DAYS: 7,
+} as const;
 
 export default {
   isValidRelationshipType,
   isValidInteractionType,
   isValidEmotionalTone,
+  isValidEmotionType,
+  isValidRelationalContext,
+  isValidDetectionMethod,
   DEFAULT_RELATIONSHIP_INTENSITY,
   DEFAULT_INTERACTION_QUALITY,
   DEFAULT_HEALTH_SCORE,
   RELATIONSHIP_HEALTH_THRESHOLDS,
   CONTACT_FREQUENCY_TARGETS,
+  EMOTIONAL_INTENSITY_SCALE,
+  AI_CONFIDENCE_THRESHOLDS,
+  RELATIONSHIP_HEALTH_CALCULATION,
 };

@@ -10,6 +10,7 @@ import React, {
   ReactNode,
   useCallback 
 } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { User } from '@react-native-firebase/auth';
 import { firebaseAuth } from '../services/firebase';
 import authService from '../services/auth';
@@ -38,6 +39,10 @@ interface AuthContextValue extends AuthState {
   
   // Utility Methods
   isOwner: (userId: string) => boolean;
+  
+  // Offline State
+  isOnline: boolean;
+  appState: AppStateStatus;
 }
 
 /**
@@ -70,6 +75,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAnonymous: false,
     isEmailVerified: false,
   });
+
+  // Offline State Management
+  // SOURCE: React Native AppState Documentation
+  const [isOnline, setIsOnline] = useState(true);
+  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
 
   /**
    * Load user profile from Firestore
@@ -106,6 +116,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }));
     }
   }, []);
+
+  /**
+   * App State Listener for Offline Detection
+   * SOURCE: React Native AppState Documentation
+   */
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      console.log('📱 App State Changed:', nextAppState);
+      setAppState(nextAppState);
+      
+      // Basic online/offline detection based on app state
+      // When app becomes active, assume online; when background, assume potentially offline
+      if (nextAppState === 'active') {
+        setIsOnline(true);
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => subscription?.remove();
+  }, []);
+
+  /**
+   * Firebase Connection State Monitoring
+   * SOURCE: Firebase Firestore Documentation - Offline Support
+   */
+  useEffect(() => {
+    if (!authState.user) return;
+
+    // Monitor Firebase connection state through a minimal document listener
+    const unsubscribe = firebaseAuth.app.firestore()
+      .collection('_connection')
+      .doc('test')
+      .onSnapshot(
+        (snapshot) => {
+          // If we receive data from cache only, we're likely offline
+          const isFromCache = snapshot.metadata.fromCache;
+          setIsOnline(!isFromCache);
+        },
+        (error) => {
+          console.warn('🔥 Connection monitor error:', error);
+          setIsOnline(false);
+        }
+      );
+
+    return unsubscribe;
+  }, [authState.user]);
 
   /**
    * Authentication State Listener
@@ -315,6 +372,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateProfile,
     refreshProfile,
     isOwner,
+    isOnline,
+    appState,
   };
 
   return (

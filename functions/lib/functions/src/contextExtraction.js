@@ -24,23 +24,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.contextExtraction = exports.generateRelationshipInsights = exports.analyzeInteractionSentiment = exports.extractContextFromText = void 0;
 const functions = __importStar(require("firebase-functions"));
+const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const generative_ai_1 = require("@google/generative-ai");
 /**
  * Gemini Configuration
  */
-const GEMINI_API_KEY = (_a = functions.config().gemini) === null || _a === void 0 ? void 0 : _a.api_key;
+const GEMINI_API_KEY = functions.config().gemini?.api_key;
 const genAI = GEMINI_API_KEY ? new generative_ai_1.GoogleGenerativeAI(GEMINI_API_KEY) : null;
 const MODEL_NAME = "gemini-1.5-flash";
 /**
  * Extract Context from Text
  * Analyzes conversations, notes, and interactions for relationship insights
  */
-exports.extractContextFromText = functions.https.onCall(async (data, context) => {
+exports.extractContextFromText = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     try {
         // Verify authentication
         if (!context.auth) {
@@ -85,7 +87,9 @@ exports.extractContextFromText = functions.https.onCall(async (data, context) =>
  * Analyze Interaction Sentiment
  * Processes multiple interactions to identify relationship trends
  */
-exports.analyzeInteractionSentiment = functions.https.onCall(async (data, context) => {
+exports.analyzeInteractionSentiment = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     try {
         // Verify authentication
         if (!context.auth || context.auth.uid !== data.userId) {
@@ -119,7 +123,9 @@ exports.analyzeInteractionSentiment = functions.https.onCall(async (data, contex
  * Generate Relationship Insights
  * Creates comprehensive relationship analysis and recommendations
  */
-exports.generateRelationshipInsights = functions.https.onCall(async (data, context) => {
+exports.generateRelationshipInsights = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     try {
         // Verify authentication
         if (!context.auth || context.auth.uid !== data.userId) {

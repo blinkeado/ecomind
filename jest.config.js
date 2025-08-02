@@ -7,20 +7,27 @@ module.exports = {
   // Test environment setup
   testEnvironment: 'node',
   setupFilesAfterEnv: [
-    '<rootDir>/__tests__/setup/testSetup.js'
+    '<rootDir>/__tests__/setup/testSetup.js',
+    '@testing-library/jest-native/extend-expect'
   ],
 
   // Module resolution
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   
-  // Transform configuration
+  // Transform configuration - Updated for modern ts-jest
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: {
+        jsx: 'react-jsx',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      },
+    }],
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
 
   // Module name mapping for React Native and custom paths
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@test/(.*)$': '<rootDir>/__tests__/$1',
     '\\.(jpg|jpeg|png|gif|svg)$': '<rootDir>/__tests__/mocks/fileMock.js',
@@ -39,6 +46,11 @@ module.exports = {
     '<rootDir>/ios/',
     '<rootDir>/__tests__/setup/',
     '<rootDir>/__tests__/mocks/',
+  ],
+
+  // Transform node_modules that need ES module transformation
+  transformIgnorePatterns: [
+    'node_modules/(?!(@react-native|react-native|@react-native-firebase|@react-navigation|react-native-vector-icons|react-native-reanimated|@react-native-community)/)',
   ],
 
   // Coverage configuration
@@ -102,14 +114,4 @@ module.exports = {
   forceExit: false,
   logHeapUsage: true,
 
-  // TypeScript configuration
-  globals: {
-    'ts-jest': {
-      tsconfig: {
-        jsx: 'react-jsx',
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-      },
-    },
-  },
 };

@@ -1,26 +1,41 @@
 {
   "name": "RelationshipAssistant",
   "version": "0.0.1",
+  "description": "EcoMind Personal Relationship Assistant with World-Class Database Architecture - Firebase subcollections, emotional intelligence, and AI integration",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest"
+    "test": "jest",
+    "quality-gates": "node scripts/production-quality-gates.js",
+    "validate:prp": "node scripts/production-quality-gates.js",
+    "validate:schema": "npx tsc --noEmit",
+    "test:ai-compliance": "jest --testPathPattern=ai",
+    "test:performance": "jest --testPathPattern=performance",
+    "audit:security": "npm audit --audit-level=high"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-firebase/app": "^22.4.0",
     "@react-native-firebase/auth": "^22.4.0",
+    "@react-native-firebase/crashlytics": "^22.4.0",
     "@react-native-firebase/firestore": "^22.4.0",
     "@react-native-firebase/functions": "^22.4.0",
-    "@react-navigation/native": "^6.1.18",
-    "@react-navigation/native-stack": "^6.11.0",
+    "@react-native-firebase/perf": "^22.4.0",
+    "@react-navigation/bottom-tabs": "^7.4.4",
+    "@react-navigation/native": "^7.1.16",
+    "@react-navigation/native-stack": "^7.3.23",
     "react": "19.0.0",
+    "react-error-boundary": "^6.0.0",
     "react-native": "0.79.5",
+    "react-native-gesture-handler": "^2.27.2",
+    "react-native-reanimated": "^4.0.1",
     "react-native-safe-area-context": "^4.14.1",
-    "react-native-screens": "^3.37.0"
+    "react-native-screens": "^4.13.1",
+    "react-native-vector-icons": "^10.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -33,14 +48,15 @@
     "@react-native/eslint-config": "0.79.5",
     "@react-native/metro-config": "0.79.5",
     "@react-native/typescript-config": "0.79.5",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.2.2",
     "@types/jest": "^29.5.13",
     "@types/react": "^19.0.0",
-    "@types/react-test-renderer": "^19.0.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
     "prettier": "2.8.8",
-    "react-test-renderer": "19.0.0",
-    "typescript": "5.0.4"
+    "ts-jest": "^29.4.0",
+    "typescript": "5.4.5"
   },
   "engines": {
     "node": ">=18"

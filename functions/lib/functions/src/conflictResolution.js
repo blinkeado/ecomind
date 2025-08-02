@@ -29,6 +29,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cleanupResolvedConflicts = exports.resolveConflict = exports.detectInteractionConflicts = exports.detectRelationshipConflicts = void 0;
 const functions = __importStar(require("firebase-functions"));
+const https_1 = require("firebase-functions/v2/https");
+const firestore_1 = require("firebase-functions/v2/firestore");
+const scheduler_1 = require("firebase-functions/v2/scheduler");
 const admin = __importStar(require("firebase-admin"));
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
@@ -50,9 +53,9 @@ const db = admin.firestore();
  * Firestore Trigger: Detect conflicts on relationship data updates
  * Triggered on: users/{userId}/relationships/{relationshipId}
  */
-exports.detectRelationshipConflicts = functions.firestore
-    .document('users/{userId}/relationships/{relationshipId}')
-    .onWrite(async (change, context) => {
+exports.detectRelationshipConflicts = (0, firestore_1.onDocumentWritten)('users/{userId}/relationships/{relationshipId}', async (event) => {
+    const change = event.data;
+    const context = event;
     const { userId, relationshipId } = context.params;
     try {
         // Skip if document was deleted
@@ -82,9 +85,9 @@ exports.detectRelationshipConflicts = functions.firestore
  * Firestore Trigger: Detect conflicts on interaction updates
  * Triggered on: users/{userId}/relationships/{relationshipId}/interactions/{interactionId}
  */
-exports.detectInteractionConflicts = functions.firestore
-    .document('users/{userId}/relationships/{relationshipId}/interactions/{interactionId}')
-    .onWrite(async (change, context) => {
+exports.detectInteractionConflicts = (0, firestore_1.onDocumentWritten)('users/{userId}/relationships/{relationshipId}/interactions/{interactionId}', async (event) => {
+    const change = event.data;
+    const context = event;
     const { userId, relationshipId, interactionId } = context.params;
     try {
         if (!change.after.exists || !change.before.exists) {
@@ -109,7 +112,9 @@ exports.detectInteractionConflicts = functions.firestore
 /**
  * HTTP Function: Resolve conflict manually by user choice
  */
-exports.resolveConflict = functions.https.onCall(async (data, context) => {
+exports.resolveConflict = (0, https_1.onCall)(async (request) => {
+    const data = request.data;
+    const context = request;
     // Authentication check
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
@@ -167,10 +172,9 @@ exports.resolveConflict = functions.https.onCall(async (data, context) => {
  * Scheduled Function: Clean up old resolved conflicts
  * Runs daily to maintain database cleanliness
  */
-exports.cleanupResolvedConflicts = functions.pubsub
-    .schedule('0 2 * * *') // 2 AM daily
-    .timeZone('UTC')
-    .onRun(async (context) => {
+exports.cleanupResolvedConflicts = (0, scheduler_1.onSchedule)('0 2 * * *', // 2 AM daily
+async (event) => {
+    const context = event;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - 30); // Keep conflicts for 30 days
     const batch = db.batch();
@@ -226,9 +230,8 @@ async function detectConcurrentModification(userId, relationshipId, oldData, new
  * Detect interaction merge conflicts (multiple devices adding similar interactions)
  */
 async function detectInteractionMergeConflict(userId, relationshipId, interactionId, oldData, newData) {
-    var _a, _b;
     // Check for rapid-fire interaction additions (within 30 seconds)
-    const timeDiff = Math.abs(((_a = newData.timestamp) === null || _a === void 0 ? void 0 : _a.toMillis()) - ((_b = oldData.timestamp) === null || _b === void 0 ? void 0 : _b.toMillis()));
+    const timeDiff = Math.abs(newData.timestamp?.toMillis() - oldData.timestamp?.toMillis());
     if (timeDiff < 30000 && newData.type === oldData.type) {
         return {
             id: `interaction_conflict_${Date.now()}`,
