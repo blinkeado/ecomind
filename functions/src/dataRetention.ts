@@ -2,6 +2,7 @@
 // VERIFIED: Cloud functions for data retention policies and automated deletion
 
 import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -581,7 +582,7 @@ async function logPrivacyAction(
 /**
  * Health check for data retention system
  */
-export const dataRetentionHealthCheck = functions.https.onRequest(async (req, res) => {
+export const dataRetentionHealthCheck = onRequest(async (req, res) => {
   try {
     // Check if cleanup functions are working
     const now = new Date();

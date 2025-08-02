@@ -4,6 +4,9 @@
 // ADDRESSES: Multi-device sync conflicts and data consistency
 
 import * as functions from 'firebase-functions';
+import { onCall } from 'firebase-functions/v2/https';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import { ConflictResolution } from '../../src/types/relationship';
 
@@ -30,9 +33,11 @@ const db = admin.firestore();
  * Firestore Trigger: Detect conflicts on relationship data updates
  * Triggered on: users/{userId}/relationships/{relationshipId}
  */
-export const detectRelationshipConflicts = functions.firestore
-  .document('users/{userId}/relationships/{relationshipId}')
-  .onWrite(async (change, context) => {
+export const detectRelationshipConflicts = onDocumentWritten(
+  'users/{userId}/relationships/{relationshipId}',
+  async (event) => {
+    const change = event.data;
+    const context = event;
     const { userId, relationshipId } = context.params;
     
     try {
@@ -74,9 +79,11 @@ export const detectRelationshipConflicts = functions.firestore
  * Firestore Trigger: Detect conflicts on interaction updates
  * Triggered on: users/{userId}/relationships/{relationshipId}/interactions/{interactionId}
  */
-export const detectInteractionConflicts = functions.firestore
-  .document('users/{userId}/relationships/{relationshipId}/interactions/{interactionId}')
-  .onWrite(async (change, context) => {
+export const detectInteractionConflicts = onDocumentWritten(
+  'users/{userId}/relationships/{relationshipId}/interactions/{interactionId}',
+  async (event) => {
+    const change = event.data;
+    const context = event;
     const { userId, relationshipId, interactionId } = context.params;
     
     try {
@@ -112,7 +119,9 @@ export const detectInteractionConflicts = functions.firestore
 /**
  * HTTP Function: Resolve conflict manually by user choice
  */
-export const resolveConflict = functions.https.onCall(async (data, context) => {
+export const resolveConflict = onCall(async (request) => {
+  const data = request.data;
+  const context = request;
   // Authentication check
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
@@ -181,10 +190,10 @@ export const resolveConflict = functions.https.onCall(async (data, context) => {
  * Scheduled Function: Clean up old resolved conflicts
  * Runs daily to maintain database cleanliness
  */
-export const cleanupResolvedConflicts = functions.pubsub
-  .schedule('0 2 * * *') // 2 AM daily
-  .timeZone('UTC')
-  .onRun(async (context) => {
+export const cleanupResolvedConflicts = onSchedule(
+  '0 2 * * *', // 2 AM daily
+  async (event) => {
+    const context = event;
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - 30); // Keep conflicts for 30 days
 

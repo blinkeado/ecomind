@@ -2,6 +2,7 @@
 // VERIFIED: Context extraction and sentiment analysis using Gemini Flash
 
 import * as functions from "firebase-functions";
+import { onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -65,7 +66,9 @@ interface SentimentAnalysisResult {
  * Extract Context from Text
  * Analyzes conversations, notes, and interactions for relationship insights
  */
-export const extractContextFromText = functions.https.onCall(async (data: ExtractContextRequest, context) => {
+export const extractContextFromText = onCall(async (request) => {
+  const data = request.data as ExtractContextRequest;
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth) {
@@ -120,7 +123,9 @@ export const extractContextFromText = functions.https.onCall(async (data: Extrac
  * Analyze Interaction Sentiment
  * Processes multiple interactions to identify relationship trends
  */
-export const analyzeInteractionSentiment = functions.https.onCall(async (data: SentimentAnalysisRequest, context) => {
+export const analyzeInteractionSentiment = onCall(async (request) => {
+  const data = request.data as SentimentAnalysisRequest;
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {
@@ -161,11 +166,13 @@ export const analyzeInteractionSentiment = functions.https.onCall(async (data: S
  * Generate Relationship Insights
  * Creates comprehensive relationship analysis and recommendations
  */
-export const generateRelationshipInsights = functions.https.onCall(async (data: {
-  userId: string;
-  personId: string;
-  analysisType?: "health" | "communication" | "engagement" | "comprehensive";
-}, context) => {
+export const generateRelationshipInsights = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    personId: string;
+    analysisType?: "health" | "communication" | "engagement" | "comprehensive";
+  };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {

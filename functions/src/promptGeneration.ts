@@ -2,6 +2,7 @@
 // VERIFIED: AI prompt generation using Google Gemini Flash for relationship suggestions
 
 import * as functions from "firebase-functions";
+import { onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { withPrivacyConsent } from "./privacyControls";
@@ -60,7 +61,9 @@ interface GeneratedPrompt {
  * Generate AI Prompt for Relationship Management
  * Uses Gemini Flash for fast, contextual suggestions
  */
-export const generatePrompt = functions.https.onCall(async (data: GeneratePromptRequest, context) => {
+export const generatePrompt = onCall(async (request) => {
+  const data = request.data as GeneratePromptRequest;
+  const context = request;
   try {
     // Verify user authentication
     if (!context.auth) {
@@ -138,14 +141,16 @@ export const generatePrompt = functions.https.onCall(async (data: GeneratePrompt
  * Generate Multiple Prompts in Bulk
  * For relationship health analysis and proactive suggestions
  */
-export const generateBulkPrompts = functions.https.onCall(async (data: {
-  userId: string;
-  relationships: Array<{
-    personId: string;
-    context: GeneratePromptRequest["relationshipContext"];
-  }>;
-  maxPrompts?: number;
-}, context) => {
+export const generateBulkPrompts = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    relationships: Array<{
+      personId: string;
+      context: GeneratePromptRequest["relationshipContext"];
+    }>;
+    maxPrompts?: number;
+  };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {
@@ -236,14 +241,16 @@ export const generateBulkPrompts = functions.https.onCall(async (data: {
  * Evaluate Prompt Relevance
  * Uses AI to score and filter prompts for quality
  */
-export const evaluatePromptRelevance = functions.https.onCall(async (data: {
-  userId: string;
-  prompts: Array<{
-    id: string;
-    suggestion: string;
-    personContext: any;
-  }>;
-}, context) => {
+export const evaluatePromptRelevance = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    prompts: Array<{
+      id: string;
+      suggestion: string;
+      personContext: any;
+    }>;
+  };
+  const context = request;
   try {
     if (!context.auth || context.auth.uid !== data.userId) {
       throw new functions.https.HttpsError("permission-denied", "Unauthorized");

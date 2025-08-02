@@ -1,7 +1,9 @@
 // SOURCE: IMPLEMENTATION_PLAN.md line 86 + Firebase Functions setup
 // VERIFIED: Firebase Cloud Functions main entry point for EcoMind AI features
 
+// Updated for Firebase Functions v6.4.0 - v2 functions (breaking change from v6.0.0)
 import * as functions from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 // Initialize Firebase Admin SDK
@@ -53,8 +55,8 @@ export { advancedRelationshipInsights, multiModalRelationshipAnalysis, checkGenk
 // Google Cloud Monitoring Functions
 export { recordCustomMetric, recordBatchMetrics, collectSystemMetrics, getMetricsData, createAlertingPolicy };
 
-// Health Check Function
-export const healthCheck = functions.https.onRequest(async (req, res) => {
+// Health Check Function - Migrated to v2 (Firebase Functions v6.4.0)
+export const healthCheck = onRequest(async (req, res) => {
   try {
     // Basic health check
     const timestamp = new Date().toISOString();
@@ -85,8 +87,8 @@ export const healthCheck = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// Configuration endpoint for checking environment
-export const getConfig = functions.https.onRequest(async (req, res) => {
+// Configuration endpoint for checking environment - Migrated to v2 (Firebase Functions v6.4.0)
+export const getConfig = onRequest(async (req, res) => {
   // Only allow GET requests
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method not allowed" });
@@ -94,9 +96,10 @@ export const getConfig = functions.https.onRequest(async (req, res) => {
   }
   
   try {
+    // Migrated from deprecated functions.config() to environment variables (Firebase Functions v6.4.0)
     const config = {
-      region: functions.config().firebase?.databaseurl || "default",
-      aiEnabled: !!functions.config().gemini?.api_key,
+      region: process.env.FIREBASE_DATABASE_URL || "default",
+      aiEnabled: !!process.env.GEMINI_API_KEY,
       environment: process.env.NODE_ENV || "development",
       version: "1.0.0"
     };

@@ -2,6 +2,7 @@
 // VERIFIED: Privacy controls for AI processing consent and data protection
 
 import * as functions from "firebase-functions";
+import { onCall } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 
 /**
@@ -89,10 +90,12 @@ export const logAIProcessingOperation = async (request: AIProcessingRequest): Pr
  * Update Privacy Settings
  * Allows users to update their privacy preferences
  */
-export const updatePrivacySettings = functions.https.onCall(async (data: {
-  userId: string;
-  settings: Partial<PrivacySettings>;
-}, context) => {
+export const updatePrivacySettings = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    settings: Partial<PrivacySettings>;
+  };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {
@@ -160,9 +163,11 @@ export const updatePrivacySettings = functions.https.onCall(async (data: {
  * Get Privacy Settings
  * Retrieve user's current privacy preferences
  */
-export const getPrivacySettings = functions.https.onCall(async (data: {
-  userId: string;
-}, context) => {
+export const getPrivacySettings = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+  };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {
@@ -216,10 +221,12 @@ export const getPrivacySettings = functions.https.onCall(async (data: {
  * Request Data Deletion (GDPR Right to be Forgotten)
  * Handles user requests for complete data deletion
  */
-export const requestDataDeletion = functions.https.onCall(async (data: {
-  userId: string;
-  reason?: string;
-}, context) => {
+export const requestDataDeletion = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    reason?: string;
+  };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {
@@ -274,10 +281,12 @@ export const requestDataDeletion = functions.https.onCall(async (data: {
  * Export User Data (GDPR Right to Data Portability)
  * Provides users with a complete export of their data
  */
-export const exportUserData = functions.https.onCall(async (data: {
-  userId: string;
-  format?: "json" | "csv";
-}, context) => {
+export const exportUserData = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    format?: "json" | "csv";
+  };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {

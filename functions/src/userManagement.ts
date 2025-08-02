@@ -2,6 +2,8 @@
 // VERIFIED: User profile management and lifecycle functions
 
 import * as functions from "firebase-functions";
+import { onCall } from "firebase-functions/v2/https";
+import { onUserCreated, onUserDeleted } from "firebase-functions/v2/identity";
 import * as admin from "firebase-admin";
 
 /**
@@ -48,7 +50,8 @@ interface UpdateProfileRequest {
  * Create User Profile on Registration
  * Triggered when a new user signs up
  */
-export const onUserCreate = functions.auth.user().onCreate(async (user) => {
+export const onUserCreate = onUserCreated(async (event) => {
+  const user = event.data;
   try {
     const db = admin.firestore();
     
@@ -133,7 +136,8 @@ export const onUserCreate = functions.auth.user().onCreate(async (user) => {
  * Clean Up User Data on Account Deletion
  * Triggered when a user deletes their account
  */
-export const onUserDelete = functions.auth.user().onDelete(async (user) => {
+export const onUserDelete = onUserDeleted(async (event) => {
+  const user = event.data;
   try {
     const db = admin.firestore();
     const batch = db.batch();
@@ -201,7 +205,9 @@ export const onUserDelete = functions.auth.user().onDelete(async (user) => {
  * Update User Profile
  * Allows users to update their profile information and preferences
  */
-export const updateUserProfile = functions.https.onCall(async (data: UpdateProfileRequest, context) => {
+export const updateUserProfile = onCall(async (request) => {
+  const data = request.data as UpdateProfileRequest;
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth) {
@@ -275,7 +281,9 @@ export const updateUserProfile = functions.https.onCall(async (data: UpdateProfi
  * Get User Profile
  * Retrieve user profile information
  */
-export const getUserProfile = functions.https.onCall(async (data: { userId: string }, context) => {
+export const getUserProfile = onCall(async (request) => {
+  const data = request.data as { userId: string };
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth) {
@@ -320,14 +328,16 @@ export const getUserProfile = functions.https.onCall(async (data: { userId: stri
  * Update User Statistics
  * Internal function to update user activity stats
  */
-export const updateUserStats = functions.https.onCall(async (data: {
-  userId: string;
-  stats: {
-    relationshipsChange?: number;
-    interactionsChange?: number;
-    lastActiveAt?: string;
+export const updateUserStats = onCall(async (request) => {
+  const data = request.data as {
+    userId: string;
+    stats: {
+      relationshipsChange?: number;
+      interactionsChange?: number;
+      lastActiveAt?: string;
+    };
   };
-}, context) => {
+  const context = request;
   try {
     // Verify authentication
     if (!context.auth || context.auth.uid !== data.userId) {
