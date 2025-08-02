@@ -12,6 +12,9 @@ import { promptGeneration } from "./promptGeneration";
 import { contextExtraction } from "./contextExtraction";  
 import { userManagement } from "./userManagement";
 import { privacyControls } from "./privacyControls";
+import { generateEmbedding, generateBatchEmbeddings, checkEmbeddingServiceHealth } from "./embeddingGeneration";
+import { advancedRelationshipInsights, multiModalRelationshipAnalysis, checkGenkitServiceHealth } from "./genkitWorkflows";
+import { recordCustomMetric, recordBatchMetrics, collectSystemMetrics, getMetricsData, createAlertingPolicy } from "./cloudMonitoring";
 
 /**
  * Export all Cloud Functions
@@ -40,6 +43,15 @@ export const updatePrivacySettings = privacyControls.updatePrivacySettings;
 export const getPrivacySettings = privacyControls.getPrivacySettings;
 export const requestDataDeletion = privacyControls.requestDataDeletion;
 export const exportUserData = privacyControls.exportUserData;
+
+// Vector Search & Embedding Functions
+export { generateEmbedding, generateBatchEmbeddings, checkEmbeddingServiceHealth };
+
+// Genkit AI Workflow Functions
+export { advancedRelationshipInsights, multiModalRelationshipAnalysis, checkGenkitServiceHealth };
+
+// Google Cloud Monitoring Functions
+export { recordCustomMetric, recordBatchMetrics, collectSystemMetrics, getMetricsData, createAlertingPolicy };
 
 // Health Check Function
 export const healthCheck = functions.https.onRequest(async (req, res) => {
