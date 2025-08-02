@@ -3,6 +3,8 @@
 
 import * as functions from 'firebase-functions';
 import { onRequest } from 'firebase-functions/v2/https';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -62,9 +64,11 @@ interface DataExportRequest {
  * GDPR Data Deletion Request Handler
  * Triggered when a user requests data deletion
  */
-export const processDataDeletionRequest = functions.firestore
-  .document('data_deletion_requests/{requestId}')
-  .onCreate(async (snapshot, context) => {
+export const processDataDeletionRequest = onDocumentCreated(
+  'data_deletion_requests/{requestId}',
+  async (event) => {
+    const snapshot = event.data;
+    const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data() as DataDeletionRequest;
     
@@ -123,9 +127,11 @@ export const processDataDeletionRequest = functions.firestore
  * GDPR Data Export Request Handler
  * Triggered when a user requests data export
  */
-export const processDataExportRequest = functions.firestore
-  .document('data_export_requests/{requestId}')
-  .onCreate(async (snapshot, context) => {
+export const processDataExportRequest = onDocumentCreated(
+  'data_export_requests/{requestId}',
+  async (event) => {
+    const snapshot = event.data;
+    const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data() as DataExportRequest;
     
@@ -183,10 +189,10 @@ export const processDataExportRequest = functions.firestore
  * Scheduled cleanup of inactive users and old data
  * Runs daily at 2 AM UTC
  */
-export const scheduledDataCleanup = functions.pubsub
-  .schedule('0 2 * * *')
-  .timeZone('UTC')
-  .onRun(async (context) => {
+export const scheduledDataCleanup = onSchedule(
+  '0 2 * * *', // 2 AM daily
+  async (event) => {
+    const context = event;
     console.log('Starting scheduled data cleanup...');
     
     try {
