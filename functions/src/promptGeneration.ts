@@ -62,6 +62,7 @@ interface GeneratedPrompt {
  * Uses Gemini Flash for fast, contextual suggestions
  */
 export const generatePrompt = onCall(async (request) => {
+  const startTime = Date.now();
   const data = request.data as GeneratePromptRequest;
   const context = request;
   try {
@@ -122,6 +123,7 @@ export const generatePrompt = onCall(async (request) => {
     
     prompt.id = promptRef.id;
     
+    const duration = Date.now() - startTime;
     functions.logger.info(`Generated prompt for user ${data.userId}, person ${data.personId} in ${duration}ms`);
     
     return prompt;

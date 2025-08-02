@@ -46,7 +46,7 @@ export declare const getMetricsData: import("firebase-functions/v2/https").Calla
  */
 export declare const createAlertingPolicy: import("firebase-functions/v2/https").CallableFunction<any, Promise<{
     success: boolean;
-    policyName: any;
-    displayName: any;
+    policyName: string;
+    displayName: string;
 }>, unknown>;
 //# sourceMappingURL=cloudMonitoring.d.ts.map

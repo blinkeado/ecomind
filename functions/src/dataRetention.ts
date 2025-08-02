@@ -1,7 +1,7 @@
 // SOURCE: Phase 6 Privacy Requirements - GDPR data retention and automated cleanup
 // VERIFIED: Cloud functions for data retention policies and automated deletion
 
-import * as functions from 'firebase-functions';
+// Remove unused import - using v2 functions only
 import { onRequest } from 'firebase-functions/v2/https';
 import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
@@ -68,6 +68,10 @@ export const processDataDeletionRequest = onDocumentCreated(
   'data_deletion_requests/{requestId}',
   async (event) => {
     const snapshot = event.data;
+    if (!snapshot) {
+      console.error('No document data provided');
+      return;
+    }
     const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data() as DataDeletionRequest;
@@ -131,6 +135,10 @@ export const processDataExportRequest = onDocumentCreated(
   'data_export_requests/{requestId}',
   async (event) => {
     const snapshot = event.data;
+    if (!snapshot) {
+      console.error('No document data provided');
+      return;
+    }
     const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data() as DataExportRequest;
@@ -192,7 +200,6 @@ export const processDataExportRequest = onDocumentCreated(
 export const scheduledDataCleanup = onSchedule(
   '0 2 * * *', // 2 AM daily
   async (event) => {
-    const context = event;
     console.log('Starting scheduled data cleanup...');
     
     try {
@@ -542,9 +549,10 @@ async function cleanupOldConsentHistory(): Promise<string> {
  * Clean up temporary data
  */
 async function cleanupTempData(): Promise<string> {
-  const cutoffDate = admin.firestore.Timestamp.fromDate(
-    new Date(Date.now() - RETENTION_POLICIES.TEMP_DATA_HOURS * 60 * 60 * 1000)
-  );
+  // Future implementation would use cutoffDate for TTL cleanup
+  // const cutoffDate = admin.firestore.Timestamp.fromDate(
+  //   new Date(Date.now() - RETENTION_POLICIES.TEMP_DATA_HOURS * 60 * 60 * 1000)
+  // );
   
   // Clean up any temporary collections that might exist
   let cleanedCount = 0;

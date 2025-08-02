@@ -43,6 +43,7 @@ const MODEL_NAME = "gemini-1.5-flash";
  * Uses Gemini Flash for fast, contextual suggestions
  */
 exports.generatePrompt = (0, https_1.onCall)(async (request) => {
+    const startTime = Date.now();
     const data = request.data;
     const context = request;
     try {
@@ -91,6 +92,7 @@ exports.generatePrompt = (0, https_1.onCall)(async (request) => {
         const promptRef = await db.collection("users").doc(data.userId)
             .collection("prompts").add(prompt);
         prompt.id = promptRef.id;
+        const duration = Date.now() - startTime;
         functions.logger.info(`Generated prompt for user ${data.userId}, person ${data.personId} in ${duration}ms`);
         return prompt;
     }

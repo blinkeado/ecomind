@@ -274,12 +274,13 @@ const advancedRelationshipInsightsFlow = ai.defineFlow({
         };
     }
     catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         firebase_functions_1.logger.error('Relationship analysis workflow failed', {
             relationshipId: input.relationshipId,
-            error: error.message,
+            error: errorMessage,
             processingTime: Date.now() - startTime,
         });
-        throw new Error(`Analysis workflow failed: ${error.message}`);
+        throw new Error(`Analysis workflow failed: ${errorMessage}`);
     }
 });
 // Define multi-modal analysis workflow
@@ -346,7 +347,7 @@ Provide analysis in JSON format:
             }
         }
         // Placeholder for image and audio analysis (would require additional models)
-        const imageAnalysis = input.images?.length > 0 ? {
+        const imageAnalysis = (input.images?.length || 0) > 0 ? {
             emotional_context: {
                 detected_emotions: [{ emotion: 'neutral', confidence: 0.5 }],
                 scene_analysis: 'Image analysis not yet implemented',
@@ -358,7 +359,7 @@ Provide analysis in JSON format:
                 social_dynamics: ['visual communication'],
             },
         } : null;
-        const audioAnalysis = input.audio?.length > 0 ? {
+        const audioAnalysis = (input.audio?.length || 0) > 0 ? {
             emotional_tone: {
                 primary_emotion: 'neutral',
                 secondary_emotions: ['calm'],
@@ -372,7 +373,7 @@ Provide analysis in JSON format:
         } : null;
         const combinedInsights = {
             coherence_score: 0.8,
-            dominant_themes: textAnalysis?.themes?.map(t => t.theme) || ['communication'],
+            dominant_themes: textAnalysis?.themes?.map((t) => t.theme) || ['communication'],
             emotional_consistency: true,
             relationship_health_indicators: ['active communication'],
             recommended_focus_areas: ['continue current communication patterns'],
@@ -412,11 +413,12 @@ Provide analysis in JSON format:
         };
     }
     catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         firebase_functions_1.logger.error('Multi-modal analysis failed', {
-            error: error.message,
+            error: errorMessage,
             processingTime: Date.now() - startTime,
         });
-        throw new Error(`Multi-modal analysis failed: ${error.message}`);
+        throw new Error(`Multi-modal analysis failed: ${errorMessage}`);
     }
 });
 // Export Cloud Functions that call the Genkit workflows
@@ -434,9 +436,10 @@ exports.advancedRelationshipInsights = (0, https_1.onCall)({
         return result;
     }
     catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         firebase_functions_1.logger.error('Advanced relationship insights failed', {
             userId: request.auth.uid,
-            error: error.message,
+            error: errorMessage,
         });
         throw error;
     }
@@ -455,9 +458,10 @@ exports.multiModalRelationshipAnalysis = (0, https_1.onCall)({
         return result;
     }
     catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         firebase_functions_1.logger.error('Multi-modal analysis failed', {
             userId: request.auth.uid,
-            error: error.message,
+            error: errorMessage,
         });
         throw error;
     }
@@ -497,7 +501,8 @@ exports.checkGenkitServiceHealth = (0, https_1.onCall)({
         };
     }
     catch (error) {
-        firebase_functions_1.logger.error('Genkit health check failed', { error: error.message });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        firebase_functions_1.logger.error('Genkit health check failed', { error: errorMessage });
         return {
             status: 'unhealthy',
             services: {
@@ -506,7 +511,7 @@ exports.checkGenkitServiceHealth = (0, https_1.onCall)({
                 workflow_orchestration: false,
                 multi_modal: false,
             },
-            error: error.message,
+            error: errorMessage,
         };
     }
 });

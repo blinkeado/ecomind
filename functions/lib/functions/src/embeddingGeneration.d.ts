@@ -21,10 +21,10 @@ export declare const generateBatchEmbeddings: import("firebase-functions/v2/http
  * Health check function for monitoring embedding service
  */
 export declare const checkEmbeddingServiceHealth: import("firebase-functions/v2/https").CallableFunction<any, Promise<{
-    healthy: any;
+    healthy: boolean;
     responseTime: number;
     model: string;
-    dimensions: any;
+    dimensions: number;
     timestamp: string;
     error?: undefined;
 } | {

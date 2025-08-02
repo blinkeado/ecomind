@@ -38,7 +38,7 @@ export declare const checkGenkitServiceHealth: import("firebase-functions/v2/htt
         workflow_orchestration: boolean;
         multi_modal: boolean;
     };
-    error: any;
+    error: string;
     performance?: undefined;
 }>, unknown>;
 //# sourceMappingURL=genkitWorkflows.d.ts.map

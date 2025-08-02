@@ -26,6 +26,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateUserDataExport = exports.deleteUserData = exports.RETENTION_POLICIES = exports.dataRetentionHealthCheck = exports.scheduledDataCleanup = exports.processDataExportRequest = exports.processDataDeletionRequest = void 0;
+// Remove unused import - using v2 functions only
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-functions/v2/firestore");
 const scheduler_1 = require("firebase-functions/v2/scheduler");
@@ -58,6 +59,10 @@ exports.RETENTION_POLICIES = RETENTION_POLICIES;
  */
 exports.processDataDeletionRequest = (0, firestore_1.onDocumentCreated)('data_deletion_requests/{requestId}', async (event) => {
     const snapshot = event.data;
+    if (!snapshot) {
+        console.error('No document data provided');
+        return;
+    }
     const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data();
@@ -98,6 +103,10 @@ exports.processDataDeletionRequest = (0, firestore_1.onDocumentCreated)('data_de
  */
 exports.processDataExportRequest = (0, firestore_1.onDocumentCreated)('data_export_requests/{requestId}', async (event) => {
     const snapshot = event.data;
+    if (!snapshot) {
+        console.error('No document data provided');
+        return;
+    }
     const context = event;
     const requestId = context.params.requestId;
     const request = snapshot.data();
@@ -142,7 +151,6 @@ exports.processDataExportRequest = (0, firestore_1.onDocumentCreated)('data_expo
  */
 exports.scheduledDataCleanup = (0, scheduler_1.onSchedule)('0 2 * * *', // 2 AM daily
 async (event) => {
-    const context = event;
     console.log('Starting scheduled data cleanup...');
     try {
         const cleanupTasks = await Promise.allSettled([
@@ -423,7 +431,10 @@ async function cleanupOldConsentHistory() {
  * Clean up temporary data
  */
 async function cleanupTempData() {
-    const cutoffDate = admin.firestore.Timestamp.fromDate(new Date(Date.now() - RETENTION_POLICIES.TEMP_DATA_HOURS * 60 * 60 * 1000));
+    // Future implementation would use cutoffDate for TTL cleanup
+    // const cutoffDate = admin.firestore.Timestamp.fromDate(
+    //   new Date(Date.now() - RETENTION_POLICIES.TEMP_DATA_HOURS * 60 * 60 * 1000)
+    // );
     // Clean up any temporary collections that might exist
     let cleanedCount = 0;
     // In this implementation, we don't have temporary collections

@@ -2,7 +2,6 @@
 // VERIFIED: Firebase Cloud Functions main entry point for EcoMind AI features
 
 // Updated for Firebase Functions v6.4.0 - v2 functions (breaking change from v6.0.0)
-import * as functions from "firebase-functions";
 import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 

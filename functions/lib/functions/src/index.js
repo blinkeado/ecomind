@@ -26,6 +26,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getConfig = exports.healthCheck = exports.createAlertingPolicy = exports.getMetricsData = exports.collectSystemMetrics = exports.recordBatchMetrics = exports.recordCustomMetric = exports.checkGenkitServiceHealth = exports.multiModalRelationshipAnalysis = exports.advancedRelationshipInsights = exports.checkEmbeddingServiceHealth = exports.generateBatchEmbeddings = exports.generateEmbedding = exports.exportUserData = exports.requestDataDeletion = exports.getPrivacySettings = exports.updatePrivacySettings = exports.updateUserStats = exports.getUserProfile = exports.updateUserProfile = exports.onUserDelete = exports.onUserCreate = exports.generateRelationshipInsights = exports.analyzeInteractionSentiment = exports.extractContextFromText = exports.evaluatePromptRelevance = exports.generateBulkPrompts = exports.generatePrompt = void 0;
+// Updated for Firebase Functions v6.4.0 - v2 functions (breaking change from v6.0.0)
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 // Initialize Firebase Admin SDK
